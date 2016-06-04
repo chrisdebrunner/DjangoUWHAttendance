@@ -1,0 +1,12 @@
+{% load staticfiles %}
+<link rel="stylesheet" type="text/css" href="{% static 'attendance/style.css' %}" />
+
+{% if latest_games_list %}
+    <ul>
+    {% for game in latest_games_list %}
+        <li><a href="{% url 'attendance:detail' game.id %}">{{ game.starttime }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No games are available.</p>
+{% endif %}

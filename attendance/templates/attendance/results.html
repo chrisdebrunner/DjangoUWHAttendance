@@ -1,0 +1,9 @@
+<h1>{{ game.starttime }}</h1>
+
+<ul>
+{% for player in game.attendees.all %}
+  <li>{{ player.firstname }} {{ player.lastname }} -- {{ player.notes }} vote{{ choice.votes|pluralize }}</li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'attendance:detail' game.id %}">Vote again?</a>
