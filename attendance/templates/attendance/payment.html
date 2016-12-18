@@ -1,0 +1,12 @@
+<h1> Payments for Quarter starting {{ game.starttime }}</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'attendance:vote' game.id %}" method="post">
+{% csrf_token %}
+{% for player in game.attendees.all %}
+   <input type="radio" name="player" id="player{{ forloop.counter }}" value="{{ player.id }}" />
+   <label for="player{{ forloop.counter }}">{{ player.firstname }} {{ player.lastname }}</label><br />
+{% endfor %}
+<input type="submit" value="Vote" />
+</form>

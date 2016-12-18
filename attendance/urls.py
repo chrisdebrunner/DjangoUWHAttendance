@@ -1,14 +1,16 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
+
+from django.contrib.auth import views as authviews
 
 from . import views
 
 app_name = 'attendance'
 urlpatterns = [
-    url(r'^$', views.IndexView.as_view(), name='index'),
-    # ex: /attendance/5/
-    url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
-    # ex: /attendance/5/results/
-    url(r'^(?P<pk>[0-9]+)/results/$', views.ResultsView.as_view(), name='results'),
-    # ex: /attendance/5/vote/
-    url(r'^(?P<game_id>[0-9]+)/vote/$', views.vote, name='vote'),
+    # Display latest games in curernt quarter. ex: /attendance/
+    url(r'^transactions/$', views.TransactionsView.as_view(), name='transactions'),
+    url(r'^password_change/$', authviews.password_change, {'post_change_redirect': 'attendance:password_change_done'}, name='password_change'),
+    url(r'^password_reset/$', authviews.password_reset, {'post_reset_redirect': 'attendance:password_reset_done'}, name='password_reset'),
+    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        authviews.password_reset_confirm, {'post_reset_redirect': 'attendance:password_reset_complete'}, name='password_reset_confirm'),
+    url('^', include('django.contrib.auth.urls')),
 ]

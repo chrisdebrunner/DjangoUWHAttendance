@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ site_title|default:_('DAUHC Attendance') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'attendance:transactions' %}">Denver Area Underwater Hockey Club Attendance</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

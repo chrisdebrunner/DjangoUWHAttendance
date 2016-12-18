@@ -1,0 +1,76 @@
+{% extends "attendance/base_site.html" %}
+{% load i18n admin_static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block userlinks %}
+    {% if user.is_superuser or user.is_staff %}
+        <a href="{% url 'admin:index' %}">Go to Admin Site</a> / 
+    {% endif %}
+    {% if user.has_usable_password %}
+        <a href="{% url 'attendance:password_change' %}">{% trans 'Change password' %}</a> /
+    {% endif %}
+    <a href="{% url 'attendance:logout' %}">{% trans 'Log out' %}</a>
+{% endblock %}
+	       
+
+{% block content %}
+<div id="content-main">
+  
+    <div class="transactions">
+    <table>
+
+    <table align="left">
+        <tbody>
+            <tr>
+                <td>
+                    <form method="post" name="transactions_form" action="">
+                        {% csrf_token %}
+			{{ player_select_form }}
+                        {% if quarter_select_form %}
+                            {{ quarter_select_form }}
+                        {% endif %}
+			{% if cost_rule_select_form %}
+			    {{ cost_rule_select_form }}
+                        {% endif %}
+                    </form>
+    </table>
+    
+    {% if playerquartercostrule %}
+        <table align="left">
+            <caption>Transactions for player {{ playerquartercostrule.player.user.first_name }}
+                {{ playerquartercostrule.player.user.last_name }} <br> during Quarter Starting
+                {{ playerquartercostrule.QuarterStartDate }}
+            </caption>
+            <thead>
+                <tr>
+                    <th align="left" style="width:100px"> Date
+                    <th align="left" style="width:200px"> Description
+    	            <th align="right" style="width:100px"> Amount
+    	            <th align="right" style="width:100px"> Balance
+            <tbody>
+                <tr>
+                    <td> {{ playerquartercostrule.QuarterStartDate|date:"m/d/Y" }}
+    		    <td> Starting Balance
+    		    <td> 
+                    <td align="right"> ${{ playerquartercostrule.start_balance|stringformat:" 10.2F" }}
+    	        {% for trans in playerquartercostrule.GetTransactions %}
+                    <tr>
+    	                 <td align="left"> {{ trans.dt|date:"m/d/Y" }}
+    	                 <td align="left"> {{ trans.description }}
+    	                 <td align="right"> ${{ trans.amount|stringformat:" 10.2F" }}
+    	                 <td align="right"> ${{ trans.balance|stringformat:" 10.2F" }}
+	        {% endfor %}
+        </table>
+    {% endif %}    
+    </table>
+    </div>
+</div>
+{% endblock %}
+

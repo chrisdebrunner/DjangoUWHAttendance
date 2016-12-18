@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% load i18n admin_static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('DAUHC Attendance') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">Denver Area Underwater Hockey Club Attendance Administration</a></h1>
+{% endblock %}
+
+{% block userlinks %}
+    <a href="{% url 'attendance:transactions' %}">Go to Transactions</a> / 
+    {% if user.has_usable_password %}
+        <a href="{% url 'attendance:password_change' %}">{% trans 'Change password' %}</a> /
+    {% endif %}
+    <a href="{% url 'attendance:logout' %}">{% trans 'Log out' %}</a>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
