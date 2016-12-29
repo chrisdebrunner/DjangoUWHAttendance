@@ -7,9 +7,15 @@ from django.http import QueryDict
 
 
 class CostRuleSelectForm(forms.Form):
-    player_class = forms.ChoiceField(choices=CostRule.PLAYER_CLASS_CHOICES, widget=forms.Select(attrs={'onchange': 'submit()'}))
-    is_visitor = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'onchange': 'submit()'}))
-    games_per_week = forms.ChoiceField(choices=CostRule.GAMES_PER_WEEK_CHOICES, widget=forms.Select(attrs={'onchange': 'submit()'}))
+    player_class = forms.ChoiceField(choices=CostRule.PLAYER_CLASS_CHOICES,
+                                     widget=forms.Select(attrs={'onchange': 'submit()'}),
+                                     label='Player category')
+    is_visitor = forms.BooleanField(required=False,
+                                    widget=forms.CheckboxInput(attrs={'onchange': 'submit()'}),
+                                    label='Visitor?')
+    games_per_week = forms.ChoiceField(choices=CostRule.GAMES_PER_WEEK_CHOICES,
+                                       widget=forms.Select(attrs={'onchange': 'submit()'}),
+                                       label='Quarterly games per week')
 
     def __init__(self, transactions_view, *args, **kwargs):
         super(CostRuleSelectForm, self).__init__(*args, **kwargs)
@@ -48,7 +54,10 @@ class PlayerQuarterCostRuleChoiceField(forms.ModelChoiceField):
         return 'Quarter starting ' + pqcr.QuarterStartDate().isoformat()
 
 class QuarterSelectForm(forms.Form):
-    player_quarter_cost_rule = PlayerQuarterCostRuleChoiceField(queryset=PlayerQuarterCostRule.objects.none(), empty_label=None, widget=forms.Select(attrs={'onchange': 'submit()'}))
+    player_quarter_cost_rule = PlayerQuarterCostRuleChoiceField(queryset=PlayerQuarterCostRule.objects.none(),
+                                                                empty_label=None,
+                                                                widget=forms.Select(attrs={'onchange': 'submit()'}),
+                                                                label='Quarter')
 
     def __init__(self, transactions_view, *args, **kwargs):
         super(QuarterSelectForm, self).__init__(*args, **kwargs)
@@ -57,7 +66,8 @@ class QuarterSelectForm(forms.Form):
 
 
 class PlayerSelectForm(forms.Form):
-    player = forms.ModelChoiceField(queryset=Player.objects.all().order_by('user__last_name', 'user__first_name') , widget=forms.Select(attrs={'onchange': 'submit()'}))
+    player = forms.ModelChoiceField(queryset=Player.objects.all().order_by('user__last_name', 'user__first_name'),
+                                    widget=forms.Select(attrs={'onchange': 'submit()'}))
 
     def __init__(self, transactions_view, *args, **kwargs):
         super(PlayerSelectForm, self).__init__(*args, **kwargs)
