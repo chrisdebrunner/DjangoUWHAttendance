@@ -4,6 +4,7 @@ import datetime
 from django.utils.timezone import localtime
 from attendance.models import QuarterStartDatetime, PlayerQuarterCostRule
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 
 
 from .models import Game, Player, CostRule, PlayerQuarterCostRule, Payment, OtherCharge
@@ -23,6 +24,48 @@ class GameAdmin(admin.ModelAdmin):
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'initial_num_games', 'initial_balance')
     ordering = ['user__last_name', 'user__first_name']
+    actions = ['send_balance_emails']
+    actions_selection_counter = True
+
+    def send_balance_emails(self, request, queryset):
+        message = """\
+This is an automated email sent by the Denver Area Underwater Hockey Club (DAUHC)
+attendance web server to let you know what you currently owe for practices. You can
+view your attendance history and balance at
+
+http://uwhockey.org/colorado/Attendance.html
+
+where your login name is {username}. If you do not know your password (or if you have
+never used your login) click on "Forgotten your password or username?" to set a new
+password. This attendance web page also allows you to change your quarterly plan, but
+only during the first four weeks of each quarter. Each quarter your quarterly plan is
+automatically set to be the same as your quarterly plan from the previous quarter. 
+
+You currently owe is ${balance:.2f}. This includes both your Carmody and VMAC practices.
+
+You can pay by giving Chris Debrunner cash or a check made out to DAUHC, or you
+can pay by paypal to: denverUWH@gmail.com. You must make a "personal" money transfer
+from your Paypal account or bank account to avoid Paypal fees. We will ask you to cover
+any fees incurred by mistake or from using a credit card.
+"""
+        for player in queryset:
+            if player.user.email != '':
+                # get latest PlayerQuarterCostRule for player
+                latest_pqcr = PlayerQuarterCostRule.objects.filter(player=player).order_by('quarter').last()
+                if latest_pqcr is not None:
+                    # get transactions for this PlayerQuarterCostRule
+                    transactions = latest_pqcr.GetTransactions()
+                    if len(transactions) > 0:
+                        balance = transactions[-1].balance
+                    else:
+                        balance = latest_pqcr.start_balance
+
+                    if balance > 0:
+                        send_mail("DAUHC UWH debt for {} {}".format(player.user.first_name, player.user.last_name),
+                                  message.format(username=player.user.username, balance=balance),
+                                  'chris.debrunner@ieee.org', [player.user.email])
+                    
+    send_balance_emails.short_description = "Send current balance emails"
 
 class PlayerInline(admin.StackedInline):
     model = Player
