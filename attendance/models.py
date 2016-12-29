@@ -226,8 +226,8 @@ class PlayerQuarterCostRule(models.Model):
             if player_total_games <= self.cost_rule.free_games + self.cost_rule.half_cost_games:
                 cost /= 2
 
-            transactions.append(Transaction(game.starttime, cost, game.get_pool_display() + " game attendance, "
-                                            + ["first", "second", "third", "fourth"][games_in_week] + " game of the week"))
+            description = "{:s} game attendance, game {:d} of {:d} in week {:d}".format(game.get_pool_display(), games_in_week, self.cost_rule.quarterly_games_per_week, game_week)
+            transactions.append(Transaction(game.starttime, cost, description))
 
         # create transactions for other charges
         for other in OtherCharge.objects.filter(player=self.player, time__range=QuarterDatetimeRange(self.quarter)):
