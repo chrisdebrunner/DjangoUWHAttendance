@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 import datetime
-from django.utils.timezone import localtime
+from django.utils.timezone import localtime, get_current_timezone
+from django.http import HttpResponseRedirect
 from attendance.models import QuarterStartDatetime, PlayerQuarterCostRule
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
@@ -24,7 +25,7 @@ class GameAdmin(admin.ModelAdmin):
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'initial_num_games', 'initial_balance')
     ordering = ['user__last_name', 'user__first_name']
-    actions = ['send_balance_emails']
+    actions = ['send_balance_emails', 'create_new_game']
     actions_selection_counter = True
 
     def send_balance_emails(self, request, queryset):
@@ -66,6 +67,17 @@ any fees incurred by mistake or from using a credit card.
                                   'chris.debrunner@ieee.org', [player.user.email])
                     
     send_balance_emails.short_description = "Send current balance emails"
+
+    def create_new_game(self, request, queryset):
+        now = datetime.datetime.now(tz=get_current_timezone())
+        game = Game(starttime=now, endtime=now)
+        game.save()     # to set the create the attendees manytomanyfield
+        game.attendees.add(*queryset)
+        game.save()
+
+        return HttpResponseRedirect("/admin/attendance/game/%d/change/" % (game.pk))
+    
+    create_new_game.short_description = "Create new game with selected players"
 
 class PlayerInline(admin.StackedInline):
     model = Player
