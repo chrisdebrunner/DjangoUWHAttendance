@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 import datetime
 from django.utils.timezone import localtime, get_current_timezone
 from django.http import HttpResponseRedirect
-from attendance.models import QuarterStartDatetime, PlayerQuarterCostRule
+from attendance.models import QuarterStartDatetime, PlayerQuarterCostRule, QuarterID
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 
@@ -68,12 +68,27 @@ any fees incurred by mistake or from using a credit card.
                     
     send_balance_emails.short_description = "Send current balance emails"
 
+
+
     def create_new_game(self, request, queryset):
         now = datetime.datetime.now(tz=get_current_timezone())
         game = Game(starttime=now, endtime=now)
-        game.save()     # to set the create the attendees manytomanyfield
+        game.save()     # to create the attendees manytomanyfield
         game.attendees.add(*queryset)
         game.save()
+
+        # create PlayerQuarterCostRules for the players as needed
+        for p in queryset:
+            lastpqcr = PlayerQuarterCostRule.objects.filter(player=p).order_by('quarter').last()
+            if lastpqcr == None:
+                newpqcr = PlayerQuarterCostRule(player=p, quarter=QuarterID(now))
+                PlayerQuarterCostRule.UpdatePlayerQuarterCostRules([newpqcr])   # will save newpqcr
+            elif lastpqcr.quarter != QuarterID(now):
+                # need to create a new PlayerQuarterCostRule copied from previous
+                newpqcr = PlayerQuarterCostRule(cost_rule=lastpqcr.cost_rule,
+                                                player=p,
+                                                quarter=QuarterID(now))
+                PlayerQuarterCostRule.UpdatePlayerQuarterCostRules([lastpqcr, newpqcr])   # will save newpqcr
 
         return HttpResponseRedirect("/admin/attendance/game/%d/change/" % (game.pk))
     
