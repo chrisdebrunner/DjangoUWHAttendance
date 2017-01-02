@@ -162,31 +162,39 @@ class PlayerQuarterCostRule(models.Model):
     def Update(self, max_lookback=1):
         "Update start_balance and start_num_games based on max_lookback earlier quarters' info, transactions, and game counts"
 
-        UpdatePlayerQuarterCostRules(PlayerQuarterCostRule.objects.filter(player=self.player, quarter__range=(self.quarter - max_lookback, self.quarter)).order_by('quarter'))
+        pqcrs = PlayerQuarterCostRule.objects.filter(player=self.player, quarter__lte=self.quarter).order_by('quarter')
+
+        PlayerQuarterCostRule.UpdatePlayerQuarterCostRules(pqcrs[max(0,len(pqcrs) - max_lookback - 1):])
 
     @staticmethod
     def UpdatePlayerQuarterCostRules(pqcrs):
         # Update start_balance and start_num_games for an iterable of PlayerQuarterCostRules
         # pqcrs is assumed to be in increasing quarter order without missing quarters, and to be all from a single player
-        player = pqcrs[0].player
 
-        # if the first PQCR in the iterable is the first in the database, make sure it is initialized
-        # to the player's start balance and num games
-        if pqcrs[0] == PlayerQuarterCostRule.objects.filter(player=player).order_by('quarter').first():
-            pqcrs[0].start_balance = player.initial_balance
-            pqcrs[0].start_num_games = player.initial_num_games
+        length = len(pqcrs)
 
-        balance = pqcrs[0].start_balance + sum(pqcrs[0].GetTransactions())
-        num_games = pqcrs[0].start_num_games + pqcrs[0].player.game_set.filter(starttime__range=QuarterDatetimeRange(pqcrs[0].quarter)).count()
+        if length > 0:
+            player = pqcrs[0].player
 
-        for pqcr in pqcrs[1:]:
-            pqcr.start_balance = balance
-            pqcr.start_num_games = num_games
-            pqcr.save()
+            # if the first PQCR in the iterable is the first in the database, make sure it is initialized
+            # to the player's start balance and num games
+            if pqcrs[0] == PlayerQuarterCostRule.objects.filter(player=player).order_by('quarter').first():
+                pqcrs[0].start_balance = player.initial_balance
+                pqcrs[0].start_num_games = player.initial_num_games
+                pqcrs[0].save()
 
-            if pqcr != pqcrs.last():
-                balance += sum(pqcr.GetTransactions())
-                num_games += pqcr.player.game_set.filter(starttime__range=QuarterDatetimeRange(pqcr.quarter)).count()
+            if length > 1:
+                balance = pqcrs[0].start_balance + sum(pqcrs[0].GetTransactions())
+                num_games = pqcrs[0].start_num_games + pqcrs[0].player.game_set.filter(starttime__range=QuarterDatetimeRange(pqcrs[0].quarter)).count()
+
+                for pqcr in pqcrs[1:]:
+                    pqcr.start_balance = balance
+                    pqcr.start_num_games = num_games
+                    pqcr.save()
+
+                    if pqcr != pqcrs[length-1]:
+                        balance += sum(pqcr.GetTransactions())
+                        num_games += pqcr.player.game_set.filter(starttime__range=QuarterDatetimeRange(pqcr.quarter)).count()
                 
 
     def GetTransactions(self):
