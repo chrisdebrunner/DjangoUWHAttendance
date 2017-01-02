@@ -159,24 +159,22 @@ class PlayerQuarterCostRule(models.Model):
     class Meta:
         unique_together = ("player", "quarter")
 
-    def Update(self, max_lookback=None, pqcrs=None):
-        "Update start_balance and start_num_games based on earlier quarters' info, transactions, and game counts"
+    def Update(self, max_lookback=1):
+        "Update start_balance and start_num_games based on max_lookback earlier quarters' info, transactions, and game counts"
 
-        # if pqcrs is not specified, get all earlier PlayerQuarterCostRules for current player including current
-        if pqcrs == None:
-            pqcrs = PlayerQuarterCostRule.objects.filter(player=self.player, quarter__lte=self.quarter).order_by('quarter')
+        UpdatePlayerQuarterCostRules(PlayerQuarterCostRule.objects.filter(player=self.player, quarter__range=(self.quarter - max_lookback, self.quarter)).order_by('quarter'))
 
-        first_pqcr = PlayerQuarterCostRule.objects.filter(player=pqcrs[0].player).order_by('quarter').first()
+    @staticmethod
+    def UpdatePlayerQuarterCostRules(pqcrs):
+        # Update start_balance and start_num_games for an iterable of PlayerQuarterCostRules
+        # pqcrs is assumed to be in increasing quarter order without missing quarters, and to be all from a single player
+        player = pqcrs[0].player
 
-        # trim the pqcrs list if it is longer than max_lookback
-        # max_lookback == None means look back as far a possible
-        if max_lookback != None and len(pqcrs) > max_lookback:
-            pqcrs = pqcrs[-max_lookback:]
-
-        # make sure first pqcr is initialized to the player's start balance and num games
-        if pqcrs[0] == first_pqcr:
-            pqcrs[0].start_balance = self.player.initial_balance
-            pqcrs[0].start_num_games = self.player.initial_num_games
+        # if the first PQCR in the iterable is the first in the database, make sure it is initialized
+        # to the player's start balance and num games
+        if pqcrs[0] == PlayerQuarterCostRule.objects.filter(player=player).order_by('quarter').first():
+            pqcrs[0].start_balance = player.initial_balance
+            pqcrs[0].start_num_games = player.initial_num_games
 
         balance = pqcrs[0].start_balance + sum(pqcrs[0].GetTransactions())
         num_games = pqcrs[0].start_num_games + pqcrs[0].player.game_set.filter(starttime__range=QuarterDatetimeRange(pqcrs[0].quarter)).count()

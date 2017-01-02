@@ -52,7 +52,7 @@ class TransactionsView(LoginRequiredMixin, generic.DetailView):
                     self.object.cost_rule = crsf.cost_rule
                     self.object.save()
                     # also update subsequent quarters -- get latest quarter
-                    self.object.Update(pqcrs=PlayerQuarterCostRule.objects.filter(player=self.object.player, quarter__gte=self.object.quarter).order_by('quarter'))
+                    PlayerQuarterCostRule.UpdatePlayerQuarterCostRules(PlayerQuarterCostRule.objects.filter(player=self.object.player, quarter__gte=self.object.quarter).order_by('quarter'))
 
                 kwargs['cost_rule_select_form'] = crsf
 
