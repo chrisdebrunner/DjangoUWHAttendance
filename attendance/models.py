@@ -47,9 +47,11 @@ class Player(models.Model):
 class Game(models.Model):
     CARMODY = 1
     VMAC = 2
+    EPIC = 3
     POOL_CHOICES = (
         (CARMODY, 'Carmody'),
         (VMAC, 'VMAC'),
+        (EPIC, 'EPIC'),
     )
     pool = models.IntegerField(choices=POOL_CHOICES, default=CARMODY)
     starttime = models.DateTimeField()
@@ -89,6 +91,7 @@ class CostRule(models.Model):
         (2, 'two games per week quarterly'),
         (3, 'three games per week quarterly'),
         (4, 'four games per week quarterly'),
+        (5, 'five games per week quarterly'),
     )
     player_class = models.PositiveSmallIntegerField(choices=PLAYER_CLASS_CHOICES, default=REGULAR)
     is_visitor = models.BooleanField(default=False)
