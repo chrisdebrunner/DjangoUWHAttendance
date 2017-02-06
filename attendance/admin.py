@@ -102,7 +102,8 @@ class UserAdmin(BaseUserAdmin):
     inlines = (PlayerInline, )
 
 class CostRuleAdmin(admin.ModelAdmin):
-    list_display = ('player_class', 'quarterly_games_per_week')
+    list_display = ('player_class', 'is_visitor', 'quarterly_games_per_week', 'game_cost', 'quarter_cost', 'free_games', 'half_cost_games')
+    ordering = ['-is_visitor', '-player_class', 'quarterly_games_per_week']
 
 class QuarterListFilter(admin.SimpleListFilter):
     title = 'Quarter Start Date'
@@ -140,7 +141,7 @@ class OtherChargeAdmin(admin.ModelAdmin):
 
 admin.site.register(Game, GameAdmin)
 admin.site.register(Player, PlayerAdmin)
-admin.site.register(CostRule)
+admin.site.register(CostRule, CostRuleAdmin)
 admin.site.register(PlayerQuarterCostRule, PlayerQuarterCostRuleAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(OtherCharge, OtherChargeAdmin)
