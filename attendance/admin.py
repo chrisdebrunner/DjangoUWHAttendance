@@ -29,6 +29,7 @@ class PlayerAdmin(admin.ModelAdmin):
     actions_selection_counter = True
 
     def send_balance_emails(self, request, queryset):
+        now = datetime.datetime.now(tz=get_current_timezone())
         message = """\
 This is an automated email sent by the Denver Area Underwater Hockey Club (DAUHC)
 attendance web server to let you know what you currently owe for practices. You can
@@ -42,13 +43,22 @@ password. This attendance web page also allows you to change your quarterly plan
 only during the first four weeks of each quarter. Each quarter your quarterly plan is
 automatically set to be the same as your quarterly plan from the previous quarter. 
 
-You currently owe is ${balance:.2f}. This includes both your Carmody and VMAC practices.
-
 You can pay by giving Chris Debrunner cash or a check made out to DAUHC, or you
 can pay by paypal to: denverUWH@gmail.com. You must make a "personal" money transfer
 from your Paypal account or bank account to avoid Paypal fees. We will ask you to cover
 any fees incurred by mistake or from using a credit card.
+
+You currently owe ${balance:.2f} (go to https://www.paypal.me/denveruwh/{balance:.2f}
+to pay via PayPal now). This includes both your Carmody, VMAC, and EPIC practices. ${extraMessage}
 """
+        thisQuarterMessage = """\
+ This
+does not include your quarterly fees for the current quarter, which will be billed when
+you play your first game in the quarter. With this quarter's quarterly fees you owe
+${thisquarterbalance:.2f} (go to https://www.paypal.me/denveruwh/{thisquarterbalance:.2f}
+to pay by PayPal now).
+"""
+
         for player in queryset:
             if player.user.email != '':
                 # get latest PlayerQuarterCostRule for player
@@ -62,8 +72,12 @@ any fees incurred by mistake or from using a credit card.
                         balance = latest_pqcr.start_balance
 
                     if balance > 0:
+                        extraMessage = ""
+                        if (latest_pqcr.quarter != QuarterID(now)) and (latest_pqcr.cost_rule.quarter_cost > 0):
+                            extraMessage = thisQuarterMessage.format(thisquarterbalance = balance + latest_pqcr.cost_rule.quarter_cost)
+                            
                         send_mail("DAUHC UWH debt for {} {}".format(player.user.first_name, player.user.last_name),
-                                  message.format(username=player.user.username, balance=balance),
+                                  message.format(username=player.user.username, balance=balance, extraMessage=extraMessage),
                                   'chris.debrunner@ieee.org', [player.user.email])
                     
     send_balance_emails.short_description = "Send current balance emails"
