@@ -16,9 +16,18 @@ class CostRuleSelectForm(forms.Form):
     games_per_week = forms.ChoiceField(choices=CostRule.GAMES_PER_WEEK_CHOICES,
                                        widget=forms.Select(attrs={'onchange': 'submit()'}),
                                        label='Quarterly games per week')
+    first_valid_quarter = 0;
 
     def __init__(self, transactions_view, *args, **kwargs):
         super(CostRuleSelectForm, self).__init__(*args, **kwargs)
+        self.first_valid_quarter = CostRule.FirstValidQuarterForQuarter(transactions_view.object.quarter)
+        # TO_DO change choices on fields based on first_valid_quarter by querying on this field
+        # E.g., can change the player_class.choices or can provide a callable that is called to produce the choices.
+        # pcs = CostRule.objects.filter(first_valid_quarter=self.first_valid_quarter).values_list('player_class',flat=True).distinct()
+        # self.player_class.choices = [e for e in CostRule.PLAYER_CLASS_CHOICES for i in pcs if e[0] == i]
+        # qs = CostRule.objects.filter(first_valid_quarter=self.first_valid_quarter).values_list('quaterly_games_per_week',flat=True).distinct()
+        # self.games_per_week.choices = [e for e in CostRule.GAMES_PER_WEEK_CHOICES for i in qs if e[0] == i]
+        
         if not transactions_view.user.is_staff:
             self.full_clean()               # clean before disabling fields since disabled fields ignore new values
             self.fields['player_class'].disabled = True
@@ -41,7 +50,8 @@ class CostRuleSelectForm(forms.Form):
         try:
             cr = CostRule.objects.get(player_class=player_class,
                                       is_visitor=is_visitor,
-                                      quarterly_games_per_week=games_per_week)
+                                      quarterly_games_per_week=games_per_week,
+                                      first_valid_quarter=self.first_valid_quarter)
             self.cost_rule = cr
             return self.cleaned_data
         except CostRule.DoesNotExist:

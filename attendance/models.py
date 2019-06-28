@@ -101,9 +101,13 @@ class CostRule(models.Model):
     covered_games_per_quarter = models.SmallIntegerField(default=0)
     free_games = models.SmallIntegerField(default=0)
     half_cost_games = models.SmallIntegerField(default=0)
+    # note that the following field value defines disjoint sets of CostRules, and for a given quarter, only the CostRules in a given set
+    # are valid
+    first_valid_quarter = models.PositiveSmallIntegerField(default=0)        # the first quarter in which this cost rule is valid
+    is_default = models.BooleanField(default=False)                          # default for all the rules expiring in a given quarter
     
     class Meta:
-        unique_together = ("player_class", "is_visitor", "quarterly_games_per_week")
+        unique_together = ("player_class", "is_visitor", "quarterly_games_per_week", "first_valid_quarter")
 
     def formatted_game_cost(self):
         return '${:>8.2f}'.format(self.game_cost)
@@ -115,13 +119,35 @@ class CostRule(models.Model):
     formatted_quarter_cost.short_description = 'Quarter Cost'
     formatted_quarter_cost.admin_oder_field = 'quarter_cost'
 
+    @staticmethod
+    def FirstValidQuarterForQuarter(quarter):
+        """return the first_valid_quarter value from CostRules that is the largest/latest <= to quarter"""
+        return CostRule.objects.filter(first_valid_quarter__lte=quarter).aggregate(models.Max('first_valid_quarter'))['first_valid_quarter__max']
+
+
+    def IsValidForQuarter(self, quarter):
+        """return true if self is valid for this quarter (ie no other CostRule has 
+        the same player, is_visitor, and quaterly_games_per_week and a larger first_valid_quarter)"""
+        # find the largest/latest first_valid_quarter less than the current quarter
+        # this CostRule is valid for this quarter if
+        fvq4q = CostRule.FirstValidQuarterForQuarter(quarter)
+        return self.first_valid_quarter == fvq4q
+
+    @staticmethod
+    def DefaultCostRule(quarter):
+        """return the default cost rule for the quarter"""
+        # find the largest/latest first_valid_quarter less than the current quarter
+        fvq4q = CostRule.FirstValidQuarterForQuarter(quarter)
+        # find the default cost rule for the largest/latest first_valid_quarter
+        return CostRule.objects.get(is_default=True,first_valid_quarter=fvq4q)
+
+
     def __str__(self):
         if self.is_visitor:
             return 'visitor ' + self.get_player_class_display()
         else:
             return self.get_player_class_display() + ' ' + self.get_quarterly_games_per_week_display()
 
-    
     
 def QuarterStartDatetime(id):
     return datetime.datetime(2000 + ((id-1) // 4), 3 * ((id-1) % 4) + 1, 1, tzinfo=timezone.get_current_timezone())
@@ -162,11 +188,40 @@ class PlayerQuarterCostRule(models.Model):
     class Meta:
         unique_together = ("player", "quarter")
 
+    @classmethod
+    def GetOrCreate(cls, player, quarter, cost_rule=None):
+        """Get the PlayerQuarterCostRule for the given player and quarter, or Create a new PlayerQuarterCostRule with
+        player, quarter, and cost_rule set as specified by the arguments. If cost_rule is not specified, check to see 
+        if this player has a PlayerQuarterCostRule for an earlier quarter, and use its cost_rule, but only if it is 
+        valid for the specified quarter. If there is no such PlayerQuarterCostRule or if the earlier cost rule is no 
+        longer valid, use the default cost rule for the given quarter. If a new PlayerQuarterCostRule is created, it
+        is saved.
+        """
+        pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter=quarter).first()
+        if pqcr:
+            return pqcr
+        else:
+            if cost_rule and cost_rule.IsValidForQuarter(quarter):
+                new_cost_rule = cost_rule
+            else:
+                lastpqcr = PlayerQuarterCostRule.objects.filter(player=player,quarter__lt=quarter).order_by('quarter').last()
+                if lastpqcr and lastpqcr.cost_rule.IsValidForQuarter(quarter):
+                    new_cost_rule = lastpqcr.cost_rule
+                else:
+                    new_cost_rule = CostRule.DefaultCostRule(quarter)
+
+            newpqcr = PlayerQuarterCostRule(player=player, quarter=quarter, cost_rule=new_cost_rule)
+            newpqcr.save()
+            newpqcr.Update()            # update the start_balance and start_num_games
+            return newpqcr
+
+
     def Update(self, max_lookback=1):
         "Update start_balance and start_num_games based on max_lookback earlier quarters' info, transactions, and game counts"
 
         pqcrs = PlayerQuarterCostRule.objects.filter(player=self.player, quarter__lte=self.quarter).order_by('quarter')
 
+        # note that pqcrs includes self (which we want to update) at the end
         PlayerQuarterCostRule.UpdatePlayerQuarterCostRules(pqcrs[max(0,len(pqcrs) - max_lookback - 1):])
 
     @staticmethod
@@ -180,7 +235,8 @@ class PlayerQuarterCostRule(models.Model):
             player = pqcrs[0].player
 
             # if the first PQCR in the iterable is the first in the database, make sure it is initialized
-            # to the player's start balance and num games
+            # to the player's start balance and num games. Otherwise assume its start_balance and start_num_games
+            # are set correctly
             if pqcrs[0] == PlayerQuarterCostRule.objects.filter(player=player).order_by('quarter').first():
                 pqcrs[0].start_balance = player.initial_balance
                 pqcrs[0].start_num_games = player.initial_num_games
@@ -284,12 +340,14 @@ class Payment(models.Model):
     TO_CHRIS = 3
     CASH = 4
     ACCOUNT_CREDIT = 5
+    DIRECT_DEPOSIT = 6
     PAYMENT_TYPE_CHOICES = (
         (CHECK, 'check'),
         (PAYPAL, 'PayPal'),
         (TO_CHRIS, 'to Chris'),
         (CASH, 'cash'),
         (ACCOUNT_CREDIT, 'account credit'),
+        (DIRECT_DEPOSIT, 'direct deposit'),
     )
     player = models.ForeignKey(Player)
     time = models.DateTimeField()

@@ -27,22 +27,8 @@ class GameAdmin(admin.ModelAdmin):
     def create_player_PQCRs(self, request, queryset):
         for game in queryset:
             for player in game.attendees.all():
-                pqcr = PlayerQuarterCostRule.objects.filter(player=player,quarter=game.QuarterID())
-                if pqcr:
-                    pass
-                else:
-                    lastpqcr = PlayerQuarterCostRule.objects.filter(player=player,quarter__lt=game.QuarterID()).order_by('quarter').last()
-                    if lastpqcr:
-                        new_cost_rule = lastpqcr.cost_rule
-                    else:
-                        new_cost_rule = CostRule.objects.get(player_class=CostRule.REGULAR,is_visitor=false)
-
-                    newpqcr = PlayerQuarterCostRule(cost_rule=new_cost_rule, \
-                                                    player=player,       \
-                                                    quarter=game.QuarterID())
-                    newpqcr.Update()
-                    newpqcr.save()
-
+                pqcr = PlayerQuarterCostRule.GetOrCreate(player,game.QuarterID())
+ 
 
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'initial_num_games', 'initial_balance')
@@ -115,16 +101,7 @@ to pay by PayPal now).
 
         # create PlayerQuarterCostRules for the players as needed
         for p in queryset:
-            lastpqcr = PlayerQuarterCostRule.objects.filter(player=p).order_by('quarter').last()
-            if lastpqcr == None:
-                newpqcr = PlayerQuarterCostRule(player=p, quarter=QuarterID(now))
-                PlayerQuarterCostRule.UpdatePlayerQuarterCostRules([newpqcr])   # will save newpqcr
-            elif lastpqcr.quarter != QuarterID(now):
-                # need to create a new PlayerQuarterCostRule copied from previous
-                newpqcr = PlayerQuarterCostRule(cost_rule=lastpqcr.cost_rule,
-                                                player=p,
-                                                quarter=QuarterID(now))
-                PlayerQuarterCostRule.UpdatePlayerQuarterCostRules([lastpqcr, newpqcr])   # will save newpqcr
+            PlayerQuarterCostRule.GetOrCreate(p, game.QuarterID())   # will save newpqcr
 
         return HttpResponseRedirect("/admin/attendance/game/%d/change/" % (game.pk))
     
