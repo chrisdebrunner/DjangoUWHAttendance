@@ -1,0 +1,11 @@
+Quarterly fees for {QuarterlyPlanName}    ${CurrentQuarterlyPlanCost:.2f}
+plan for quarter starting 
+{CurrentQuarterStartDate}
+
+Cost of {NumDropInPractices} drop-in practices   ${CurrentQuarterDropinCost:.2f}
+at {DropinCostDescr}
+
+Credits                                          ${CurrentQuarterCredits:.2f}
+
+Other charges                                    ${CurrentQuarterOtherCharges:.2f}
+

@@ -1,0 +1,18 @@
+This is an automated email sent by the Denver Area Underwater Hockey Club (DAUHC)
+attendance web server to let you know what you currently owe. 
+
+You currently owe ${balance:.2f} (go to https://www.paypal.me/denveruwh/{balance:.2f}
+to pay via PayPal now). 
+
+Payment Methods:
+•    Automatic Bill Pay: Consider scheduling a recurring quarterly payment from
+     your checking account to the club's on or before the first day of the quarter!
+     •    DAUHC Checking -- at Community Banks of Colorado
+             Routing number: 102102013
+             Account number: 9711175
+•    Paypal: denveruwh@gmail.com
+     Please make a personal transfer to avoid any fees. We will ask you to cover 
+     any fees incurred by mistake or from using a credit card.
+•    Cash or check:
+     Checks should be made out to DAUHC.
+     Deliver to Chris Debrunner or Tyera Eulberg

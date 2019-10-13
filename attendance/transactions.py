@@ -34,3 +34,16 @@ class Transaction():
         return outstr
 
     
+class QuarterCostTransaction(Transaction):
+    "a quarterly cost transaction"
+
+class GameTransaction(Transaction):
+    "a game transaction"
+
+class OtherChargeTransaction(Transaction):
+    "a other charge transaction"
+
+class PaymentTransaction(Transaction):
+    "a payment transaction"
+
+    

@@ -9,6 +9,8 @@ from django.core.mail import send_mail
 
 
 from .models import Game, Player, CostRule, PlayerQuarterCostRule, Payment, OtherCharge
+from .transactions import QuarterCostTransaction, GameTransaction, OtherChargeTransaction, PaymentTransaction
+
 
 class GameAdmin(admin.ModelAdmin):
     list_display = ('starttime', 'pool', 'player_count')
@@ -33,65 +35,106 @@ class GameAdmin(admin.ModelAdmin):
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'initial_num_games', 'initial_balance')
     ordering = ['user__last_name', 'user__first_name']
-    actions = ['send_balance_emails', 'create_new_game']
+    actions = ['send_upcoming_quarter_invoice_emails', 'send_balance_emails', 'create_new_game']
     actions_selection_counter = True
 
     def send_balance_emails(self, request, queryset):
         now = datetime.datetime.now(tz=get_current_timezone())
-        message = """\
-This is an automated email sent by the Denver Area Underwater Hockey Club (DAUHC)
-attendance web server to let you know what you currently owe for practices. You can
-view your attendance history and balance at
-
-http://uwhockey.org/colorado/Attendance.html
-
-where your login name is {username}. If you do not know your password (or if you have
-never used your login) click on "Forgotten your password or username?" to set a new
-password. This attendance web page also allows you to change your quarterly plan, but
-only during the first four weeks of each quarter. Each quarter your quarterly plan is
-automatically set to be the same as your quarterly plan from the previous quarter. 
-
-You can pay by giving Chris Debrunner cash or a check made out to DAUHC, or you
-can pay by paypal to: denverUWH@gmail.com. You must make a "personal" money transfer
-from your Paypal account or bank account to avoid Paypal fees. We will ask you to cover
-any fees incurred by mistake or from using a credit card.
-
-You currently owe ${balance:.2f} (go to https://www.paypal.me/denveruwh/{balance:.2f}
-to pay via PayPal now). This includes both your Carmody, VMAC, and EPIC practices. ${extraMessage}
-"""
-        thisQuarterMessage = """\
- This
-does not include your quarterly fees for the current quarter, which will be billed when
-you play your first game in the quarter. With this quarter's quarterly fees you owe
-${thisquarterbalance:.2f} (go to https://www.paypal.me/denveruwh/{thisquarterbalance:.2f}
-to pay by PayPal now).
-"""
+        f = open('/Users/cdebrunn/Software/djangoUWH/djangoUWH/email templates/UWH balance email.txt','r')
+        message = f.read()
 
         for player in queryset:
             if player.user.email != '':
                 # get latest PlayerQuarterCostRule for player
                 latest_pqcr = PlayerQuarterCostRule.objects.filter(player=player).order_by('quarter').last()
                 if latest_pqcr is not None:
-                    # get transactions for this PlayerQuarterCostRule
                     transactions = latest_pqcr.GetTransactions()
-                    if len(transactions) > 0:
-                        balance = transactions[-1].balance
-                    else:
-                        balance = latest_pqcr.start_balance
+                if len(transactions) > 0:
+                    balance = transactions[-1].balance
+                else:
+                    balance = latest_pqcr.start_balance
 
-                    if balance > 0:
-                        extraMessage = ""
-                        if (latest_pqcr.quarter != QuarterID(now)) and (latest_pqcr.cost_rule.quarter_cost > 0):
-                            extraMessage = thisQuarterMessage.format(thisquarterbalance = balance + latest_pqcr.cost_rule.quarter_cost)
-                            
-                        send_mail("DAUHC UWH debt for {} {}".format(player.user.first_name, player.user.last_name),
-                                  message.format(username=player.user.username, balance=balance, extraMessage=extraMessage),
-                                  'chris.debrunner@ieee.org', [player.user.email])
+                if balance > 0:
+                    send_mail(subject_prefix + "UWH balance email for {} {}".format(player.user.first_name, player.user.last_name),
+                              message.format(balance = balance),
+                             'chris.debrunner@ieee.org',
+                             [player.user.email])
+
+                    fill_in_and_send_email(player, "DAUHC UWH debt for ", latest_pqcr, QuarterID(now), message)
                     
     send_balance_emails.short_description = "Send current balance emails"
 
 
+    def send_upcoming_quarter_invoice_emails(self, request, queryset):
+        now = datetime.datetime.now(tz=get_current_timezone())
+        current_quarter = QuarterID(now)
+        message_template_path = '/Users/cdebrunn/Software/djangoUWH/djangoUWH/email templates/'
+        f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate No Web Page.txt','r',encoding='utf_8')
+        message = f.read()
+        f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate CurrentQuarterInvoiceTableRows.txt','r',encoding='utf_8')
+        message_cqitr = f.read()
+        f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate No Web Page utf8.html','r',encoding='utf_8')
+        html_message = f.read()
+        f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate CurrentQuarterInvoiceTableRows.html','r',encoding='utf_8')
+        html_message_cqitr = f.read()
+        for player in queryset:
+            if player.user.email != '':
+                # get latest PlayerQuarterCostRule for player
+                latest_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=current_quarter).order_by('quarter').last()
+                if latest_pqcr is not None:
+                    msg_values = {'QuarterlyPlanName' : str(latest_pqcr.cost_rule),
+                                  'QuarterlyPlanCost' : latest_pqcr.cost_rule.quarter_cost * latest_pqcr.discount_rate,
+                                  'PlayerName' : player.user.first_name + ' ' + player.user.last_name,
+                                  'PaymentDueDate' : (QuarterStartDatetime(current_quarter+1).date() + datetime.timedelta(days=9)).strftime('%B %d, %Y'),
+                                  'CurrentQuarterStartDate' : QuarterStartDatetime(current_quarter).date().strftime('%B %d, %Y'),
+                                  'InitialBalance' : 0,
+                                  'CurrentQuarterInvoiceTableRowsHTML' : '',
+                                  'CurrentQuarterInvoiceTableRowsTXT' : '',
+                                  'TotalBalanceDue' : 0,
+                                  'username' : player.user.username}
+        
+                    # get transactions for this PlayerQuarterCostRule
+                    transactions = latest_pqcr.GetTransactions()
+                    if latest_pqcr.quarter == current_quarter:
+                        msg_values['InitialBalance'] = latest_pqcr.start_balance
+                        games = [ t for t in transactions if t.__class__ == GameTransaction ]
+                        drop_in_games = [ t for t in games if t.amount > 0 ]
+                        cqitr_values = {'QuarterlyPlanName' : msg_values['QuarterlyPlanName'],
+                                        'CurrentQuarterStartDate' : msg_values['CurrentQuarterStartDate'],
+                                        'CurrentQuarterlyPlanCost' : sum([t.amount for t in transactions
+                                                                          if t.__class__ == QuarterCostTransaction]),
+                                        'NumDropInPractices' : len(drop_in_games),
+                                        'DropinCostDescr' : "${:.2f}/game".format(latest_pqcr.cost_rule.game_cost),
+                                        'CurrentQuarterDropinCost' : sum([t.amount for t in drop_in_games]),
+                                        'CurrentQuarterCredits' : sum([t.amount for t in transactions
+                                                                       if t.__class__ == PaymentTransaction]),
+                                        'CurrentQuarterOtherCharges' : sum([t.amount for t in transactions
+                                                                            if t.__class__ == OtherChargeTransaction])}
+                        full_price_games = [ t for t in drop_in_games if t.amount == latest_pqcr.cost_rule.game_cost ]
+                        if len(drop_in_games) > len(full_price_games):
+                            cqitr_values['DropinCostDescr'] += ", {:d} at half cost".format(len(drop_in_games) - len(full_price_games))
+                        msg_values['CurrentQuarterInvoiceTableRowsHTML'] = html_message_cqitr.format(**cqitr_values)
+                        msg_values['CurrentQuarterInvoiceTableRowsTXT'] = message_cqitr.format(**cqitr_values)
+                        msg_values['TotalBalanceDue'] = (msg_values['InitialBalance'] +
+                                                         sum([ t.amount for t in transactions ]) +
+                                                         msg_values['QuarterlyPlanCost'])
+                    else:
+                        if len(transactions) > 0:
+                            msg_values['InitialBalance'] = transactions[-1].balance
+                        else:
+                            msg_values['InitialBalance'] = latest_pqcr.start_balance
+                        msg_values['TotalBalanceDue'] = msg_values['InitialBalance'] + msg_values['QuarterlyPlanCost']
 
+                    if msg_values['TotalBalanceDue'] > 0:                            
+                        send_mail("UWH upcoming quarter invoice for {} {}".format(player.user.first_name, player.user.last_name),
+                                  message.format(**msg_values),
+                                  'chris.debrunner@ieee.org',
+                                  [player.user.email],
+                                  html_message = html_message.format(**msg_values))
+                    
+    send_upcoming_quarter_invoice_emails.short_description = "Send upcoming quarter invoice emails"
+
+    
     def create_new_game(self, request, queryset):
         now = datetime.datetime.now(tz=get_current_timezone())
         game = Game(starttime=now, endtime=now)
@@ -115,8 +158,8 @@ class UserAdmin(BaseUserAdmin):
     inlines = (PlayerInline, )
 
 class CostRuleAdmin(admin.ModelAdmin):
-    list_display = ('player_class', 'is_visitor', 'quarterly_games_per_week', 'game_cost', 'quarter_cost', 'free_games', 'half_cost_games')
-    ordering = ['-is_visitor', '-player_class', 'quarterly_games_per_week']
+    list_display = ('player_class', 'is_visitor', 'quarterly_games_per_week', 'game_cost', 'quarter_cost', 'free_games', 'half_cost_games', 'first_valid_quarter', 'is_default')
+    ordering = ['first_valid_quarter', '-is_visitor', '-player_class', 'quarterly_games_per_week']
 
 class QuarterListFilter(admin.SimpleListFilter):
     title = 'Quarter Start Date'
@@ -133,7 +176,7 @@ class QuarterListFilter(admin.SimpleListFilter):
             return queryset.filter(quarter=self.value())
 
 class PlayerQuarterCostRuleAdmin(admin.ModelAdmin):
-    list_display = ('quarter_start_date', 'player', 'cost_rule', 'formatted_start_balance')
+    list_display = ('quarter_start_date', 'player', 'cost_rule', 'prorate', 'discount_rate', 'formatted_start_balance')
     list_filter = (QuarterListFilter,)
     #date_hierarchy = 'quarter_start_date'
     ordering = ['-quarter', 'player__user__last_name', 'player__user__first_name']

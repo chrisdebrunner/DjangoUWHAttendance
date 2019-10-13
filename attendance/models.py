@@ -1,7 +1,7 @@
 from django.db import models
 import datetime
 from django.utils import timezone
-from attendance.transactions import Transaction
+from attendance.transactions import Transaction, QuarterCostTransaction, GameTransaction, OtherChargeTransaction, PaymentTransaction
 from operator import attrgetter
 from django.contrib.auth.models import User
 
@@ -183,6 +183,7 @@ class PlayerQuarterCostRule(models.Model):
     start_balance = models.FloatField(default=0.0)
     start_num_games = models.PositiveSmallIntegerField(default=0)
     prorate = models.FloatField(default=1.0)
+    discount_rate = models.FloatField(default=1.0)
     WEEK_START_DAY = 6         # starting day of the week, Mon=0, Tue=1, ..., Sun = 6
     
     class Meta:
@@ -210,7 +211,8 @@ class PlayerQuarterCostRule(models.Model):
                 else:
                     new_cost_rule = CostRule.DefaultCostRule(quarter)
 
-            newpqcr = PlayerQuarterCostRule(player=player, quarter=quarter, cost_rule=new_cost_rule)
+            newpqcr = PlayerQuarterCostRule(player=player, quarter=quarter, cost_rule=new_cost_rule,
+                                            discount_rate=lastpqcr.discount_rate)
             newpqcr.save()
             newpqcr.Update()            # update the start_balance and start_num_games
             return newpqcr
@@ -263,7 +265,9 @@ class PlayerQuarterCostRule(models.Model):
 
         # create a transaction for the quarterly cost
         if self.cost_rule.quarter_cost > 0:
-            transactions.append(Transaction(QuarterStartDatetime(self.quarter), self.cost_rule.quarter_cost * self.prorate, "Quarterly cost"))
+            transactions.append(QuarterCostTransaction(QuarterStartDatetime(self.quarter),
+                                                         self.cost_rule.quarter_cost * self.prorate * self.discount_rate,
+                                                         "Quarterly cost"))
 
         prev_game_week = -1
         games_in_week = 0
@@ -280,27 +284,25 @@ class PlayerQuarterCostRule(models.Model):
 
             player_total_games += 1
 
+            description = "{:s} game attendance, game {:d} of {:d} in week {:d}".format(game.get_pool_display(), games_in_week, self.cost_rule.quarterly_games_per_week, game_week)
             if player_total_games > self.cost_rule.free_games:
                 if games_in_week > self.cost_rule.quarterly_games_per_week:
-                    cost = self.cost_rule.game_cost
+                    if player_total_games <= self.cost_rule.free_games + self.cost_rule.half_cost_games:
+                        transactions.append(GameTransaction(game.starttime, self.cost_rule.game_cost/2, description))
+                    else:
+                        transactions.append(GameTransaction(game.starttime, self.cost_rule.game_cost/2, description))
                 else:
-                    cost = 0
+                    transactions.append(GameTransaction(game.starttime, 0, description))
             else:
-                cost = 0
-
-            if player_total_games <= self.cost_rule.free_games + self.cost_rule.half_cost_games:
-                cost /= 2
-
-            description = "{:s} game attendance, game {:d} of {:d} in week {:d}".format(game.get_pool_display(), games_in_week, self.cost_rule.quarterly_games_per_week, game_week)
-            transactions.append(Transaction(game.starttime, cost, description))
+                transactions.append(GameTransaction(game.starttime, 0, description))
 
         # create transactions for other charges
         for other in OtherCharge.objects.filter(player=self.player, time__range=QuarterDatetimeRange(self.quarter)):
-            transactions.append(Transaction(other.time, other.amount, other.remarks))
+            transactions.append(OtherChargeTransaction(other.time, other.amount, other.remarks))
 
         # create transactions for payments
         for payment in Payment.objects.filter(player=self.player, time__range=QuarterDatetimeRange(self.quarter)):
-            transactions.append(Transaction(payment.time, -payment.amount, \
+            transactions.append(PaymentTransaction(payment.time, -payment.amount, \
                                             payment.get_payment_type_display() + ' payment: ' + payment.reference))
 
         balance = self.start_balance
@@ -330,7 +332,7 @@ class PlayerQuarterCostRule(models.Model):
     def __str__(self):
         return 'PlayerQuarterCostRule for player ' + str(self.player) + \
           ' in quarter starting ' + QuarterStartDatetime(self.quarter).isoformat() + ' is ' + str(self.cost_rule) + \
-          ' with a prorate of ' + str(self.prorate)
+          ' with a prorate of ' + str(self.prorate) + ' and a discount rate of ' + str(self.discount_rate)
 
         
 
