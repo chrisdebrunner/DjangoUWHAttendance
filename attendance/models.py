@@ -290,7 +290,7 @@ class PlayerQuarterCostRule(models.Model):
                     if player_total_games <= self.cost_rule.free_games + self.cost_rule.half_cost_games:
                         transactions.append(GameTransaction(game.starttime, self.cost_rule.game_cost/2, description))
                     else:
-                        transactions.append(GameTransaction(game.starttime, self.cost_rule.game_cost/2, description))
+                        transactions.append(GameTransaction(game.starttime, self.cost_rule.game_cost, description))
                 else:
                     transactions.append(GameTransaction(game.starttime, 0, description))
             else:
