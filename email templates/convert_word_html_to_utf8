@@ -1,3 +1,4 @@
 open the file in emacs, and conver all curly brackets that are not enclosing python substitutions with double open and close curly brackets
 (ie { -> {{ and } -> }}). Also move the "{CurrentQuarterInvoiceTableRowsHTML}" python tag from the cell at the end of the row to between the
-rows (between the </tr> and the <tr> tags). To convert the file to utf-8, press "C-X C-M f" and enter utf-8, then save with "C-X C-S".
+rows (between the </tr> and the <tr> tags). To convert the file to utf-8, press "C-X C-M f" and enter utf-8, then save with "C-X C-S". Also make 
+sure the href in the paypal.me link has curly brackets in it rather than %7b and %7d.
