@@ -1,4 +1,22 @@
-open the file in emacs, and conver all curly brackets that are not enclosing python substitutions with double open and close curly brackets
-(ie { -> {{ and } -> }}). Also move the "{CurrentQuarterInvoiceTableRowsHTML}" python tag from the cell at the end of the row to between the
-rows (between the </tr> and the <tr> tags). To convert the file to utf-8, press "C-X C-M f" and enter utf-8, then save with "C-X C-S". Also make 
-sure the href in the paypal.me link has curly brackets in it rather than %7b and %7d.
+Save the file in Word as "Web Page, Filtered (.htm)". 
+
+Open the file in emacs, and convert all curly brackets that are not enclosing python 
+substitutions with double open and close curly brackets (ie { -> {{ and } -> }}). 
+
+Reduce the second column width from 287 to 80 (215.2 pt to 60 pt) and the third 
+column width from 280 to 80 (209.95 pt to 60 pt).
+For the first and last rows, reduce the first column width from 661 to 454 
+(495.9 pt to 340.5 pt) and the second column width from 280 to 80 
+(209.95 pt to 60 pt).
+This can can be accomplished by replacing 661 with 454, 495.9 with 340.5, 
+287 with 80, 215.2 with 60, 280 with 80, and 209.95 with 60.
+
+Also move all but the first and last two table rows to the file "UWH Quarterly 
+Player Invoice Template CurrentQuarterInvoiceTableRows.html" and replace them with
+"{CurrentQuarterInvoiceTableRowsHTML}" python tag.
+
+Also make sure the href in the paypal.me link has curly brackets in it rather 
+than %7b and %7d. 
+
+To convert the file to utf-8, press "C-X C-M f" and enter utf-8, then save with 
+"C-X C-W" to the same file name with " utf8" appended. 

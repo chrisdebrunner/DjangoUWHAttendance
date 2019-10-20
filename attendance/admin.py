@@ -110,6 +110,16 @@ class PlayerAdmin(admin.ModelAdmin):
                                                                        if t.__class__ == PaymentTransaction]),
                                         'CurrentQuarterOtherCharges' : sum([t.amount for t in transactions
                                                                             if t.__class__ == OtherChargeTransaction])}
+                        balance = msg_values['InitialBalance'] + cqitr_values['CurrentQuarterlyPlanCost']
+                        cqitr_values['CurrentQuarterlyPlanBalance'] = balance
+                        balance += cqitr_values['CurrentQuarterDropinCost']
+                        cqitr_values['CurrentQuarterDropinBalance'] = balance
+                        balance += cqitr_values['CurrentQuarterCredits']
+                        cqitr_values['CurrentQuarterCreditBalance'] = balance
+                        balance += cqitr_values['CurrentQuarterOtherCharges']
+                        cqitr_values['CurrentQuarterOtherChargeBalance'] = balance
+                        balance += msg_values['QuarterlyPlanCost']
+                        msg_values['QuarterlyPlanBalance'] = balance
                         full_price_games = [ t for t in drop_in_games if t.amount == latest_pqcr.cost_rule.game_cost ]
                         if len(drop_in_games) > len(full_price_games):
                             cqitr_values['DropinCostDescr'] += ", {:d} at half cost".format(len(drop_in_games) - len(full_price_games))
