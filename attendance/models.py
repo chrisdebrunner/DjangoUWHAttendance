@@ -193,26 +193,39 @@ class PlayerQuarterCostRule(models.Model):
     def GetOrCreate(cls, player, quarter, cost_rule=None):
         """Get the PlayerQuarterCostRule for the given player and quarter, or Create a new PlayerQuarterCostRule with
         player, quarter, and cost_rule set as specified by the arguments. If cost_rule is not specified, check to see 
-        if this player has a PlayerQuarterCostRule for an earlier quarter, and use its cost_rule, but only if it is 
-        valid for the specified quarter. If there is no such PlayerQuarterCostRule or if the earlier cost rule is no 
-        longer valid, use the default cost rule for the given quarter. If a new PlayerQuarterCostRule is created, it
-        is saved.
+        if this player has a PlayerQuarterCostRule for an earlier quarter, and if the earlier quarter is the previous
+        quarter, use the CostRule with the same player_class, same is_visitor flag, whose quarterly_games_per_week is at
+        least that of the earlier quarter's, and that is valid for the desired quarter. Do the same if the
+        earlier quarter is not the previous quarter, except find a CostRule with quarterly_games_per_week of 0. If
+        there is no such earlier PlayerQuarterCostRule, use the default cost rule for the given quarter. If a new
+        PlayerQuarterCostRule is created, it is created with the same discount_rate as the previous 
+        PlayerQuarterCostRule for the player (or 1.0 if there is no previous PlayerQuarterCostRule) and is saved.
         """
         pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter=quarter).first()
         if pqcr:
             return pqcr
         else:
+            discount_rate = 1.0
             if cost_rule and cost_rule.IsValidForQuarter(quarter):
                 new_cost_rule = cost_rule
             else:
                 lastpqcr = PlayerQuarterCostRule.objects.filter(player=player,quarter__lt=quarter).order_by('quarter').last()
-                if lastpqcr and lastpqcr.cost_rule.IsValidForQuarter(quarter):
-                    new_cost_rule = lastpqcr.cost_rule
+                if lastpqcr:
+                    if lastpqcr.quarter == quarter-1:
+                        qgpw = lastpqcr.quarterly_games_per_week
+                    else:
+                        qgpw = 0
+                    new_cost_rule = CostRule.objects.filter(player_class=lastpqcr.cost_rule.player_class,
+                                                            is_visitor=lastpqcr.cost_rule.is_visitor,
+                                                            quarterly_games_per_week__gte=qgpw,
+                                                            first_valid_quarter__lte=quarter).order_by('first_valid_quarter',
+                                                                                                      '-quarterly_games_per_week').last()
+                    discount_rate = lastpqcr.discount_rate
                 else:
                     new_cost_rule = CostRule.DefaultCostRule(quarter)
 
             newpqcr = PlayerQuarterCostRule(player=player, quarter=quarter, cost_rule=new_cost_rule,
-                                            discount_rate=lastpqcr.discount_rate)
+                                            discount_rate=discount_rate)
             newpqcr.save()
             newpqcr.Update()            # update the start_balance and start_num_games
             return newpqcr

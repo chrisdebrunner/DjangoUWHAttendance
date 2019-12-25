@@ -49,19 +49,19 @@ class PlayerAdmin(admin.ModelAdmin):
                 latest_pqcr = PlayerQuarterCostRule.objects.filter(player=player).order_by('quarter').last()
                 if latest_pqcr is not None:
                     transactions = latest_pqcr.GetTransactions()
+                else:
+                    continue
                 if len(transactions) > 0:
                     balance = transactions[-1].balance
                 else:
                     balance = latest_pqcr.start_balance
 
                 if balance > 0:
-                    send_mail(subject_prefix + "UWH balance email for {} {}".format(player.user.first_name, player.user.last_name),
+                    send_mail("UWH balance email for {} {}".format(player.user.first_name, player.user.last_name),
                               message.format(balance = balance),
                              'chris.debrunner@ieee.org',
                              [player.user.email])
 
-                    fill_in_and_send_email(player, "DAUHC UWH debt for ", latest_pqcr, QuarterID(now), message)
-                    
     send_balance_emails.short_description = "Send current balance emails"
 
 
@@ -71,12 +71,16 @@ class PlayerAdmin(admin.ModelAdmin):
         message_template_path = '/Users/cdebrunn/Software/djangoUWH/djangoUWH/email templates/'
         f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate No Web Page.txt','r',encoding='utf_8')
         message = f.read()
+        f.close()
         f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate CurrentQuarterInvoiceTableRows.txt','r',encoding='utf_8')
         message_cqitr = f.read()
+        f.close()
         f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate No Web Page utf8.html','r',encoding='utf_8')
         html_message = f.read()
+        f.close()
         f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate CurrentQuarterInvoiceTableRows.html','r',encoding='utf_8')
         html_message_cqitr = f.read()
+        f.close()
         for player in queryset:
             if player.user.email != '':
                 # get latest PlayerQuarterCostRule for player
@@ -133,15 +137,17 @@ class PlayerAdmin(admin.ModelAdmin):
                             msg_values['InitialBalance'] = transactions[-1].balance
                         else:
                             msg_values['InitialBalance'] = latest_pqcr.start_balance
-                        msg_values['TotalBalanceDue'] = msg_values['InitialBalance'] + msg_values['QuarterlyPlanCost']
+                        msg_values['QuarterlyPlanBalance'] = msg_values['InitialBalance'] + msg_values['QuarterlyPlanCost']
+                        msg_values['TotalBalanceDue'] = msg_values['QuarterlyPlanBalance']
 
-                    if msg_values['TotalBalanceDue'] > 0:                            
+                    if msg_values['TotalBalanceDue'] > 0:
                         send_mail("UWH upcoming quarter invoice for {} {}".format(player.user.first_name, player.user.last_name),
                                   message.format(**msg_values),
-                                  'chris.debrunner@ieee.org',
+                                  'dauhcattendance@gmail.com',
                                   [player.user.email],
                                   html_message = html_message.format(**msg_values))
-                    
+    
+    
     send_upcoming_quarter_invoice_emails.short_description = "Send upcoming quarter invoice emails"
 
     
