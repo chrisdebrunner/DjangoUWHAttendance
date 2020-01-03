@@ -212,7 +212,7 @@ class PlayerQuarterCostRule(models.Model):
                 lastpqcr = PlayerQuarterCostRule.objects.filter(player=player,quarter__lt=quarter).order_by('quarter').last()
                 if lastpqcr:
                     if lastpqcr.quarter == quarter-1:
-                        qgpw = lastpqcr.quarterly_games_per_week
+                        qgpw = lastpqcr.cost_rule.quarterly_games_per_week
                     else:
                         qgpw = 0
                     new_cost_rule = CostRule.objects.filter(player_class=lastpqcr.cost_rule.player_class,
