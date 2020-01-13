@@ -194,8 +194,20 @@ class QuarterListFilter(admin.SimpleListFilter):
 class PlayerQuarterCostRuleAdmin(admin.ModelAdmin):
     list_display = ('quarter_start_date', 'player', 'cost_rule', 'prorate', 'discount_rate', 'formatted_start_balance')
     list_filter = (QuarterListFilter,)
+    actions = ['update_future_balances']
+    actions_selection_counter = True
     #date_hierarchy = 'quarter_start_date'
     ordering = ['-quarter', 'player__user__last_name', 'player__user__first_name']
+
+    def update_future_balances(self, request, queryset):
+        now = datetime.datetime.now(tz=get_current_timezone())
+        for pqcr in queryset:
+            pqcr.UpdateFuturePQCRs()
+
+    update_future_balances.short_description = "Update the balances of all future PlayerQuarterCostRules for the given players"
+
+
+
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('time', 'player', 'formatted_amount', 'payment_type', 'reference')

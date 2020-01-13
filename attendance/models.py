@@ -173,7 +173,7 @@ def UpdateAllPlayerQuarterCostRules(quarter_id, max_lookback=1, players=None):
         pqcrs = PlayerQuarterCostRule.objects.filter(quarter=quarter_id, player__in=players)
 
     for pqcr in pqcrs:
-        pqcr.Update(max_lookback)
+        pqcr.UpdatePastPQCRs(max_lookback)
 
 
 class PlayerQuarterCostRule(models.Model):
@@ -227,17 +227,29 @@ class PlayerQuarterCostRule(models.Model):
             newpqcr = PlayerQuarterCostRule(player=player, quarter=quarter, cost_rule=new_cost_rule,
                                             discount_rate=discount_rate)
             newpqcr.save()
-            newpqcr.Update()            # update the start_balance and start_num_games
+            newpqcr.UpdatePastPQCRs()            # update the start_balance and start_num_games
             return newpqcr
 
 
-    def Update(self, max_lookback=1):
+    def UpdatePastPQCRs(self, max_lookback=1):
         "Update start_balance and start_num_games based on max_lookback earlier quarters' info, transactions, and game counts"
 
         pqcrs = PlayerQuarterCostRule.objects.filter(player=self.player, quarter__lte=self.quarter).order_by('quarter')
 
         # note that pqcrs includes self (which we want to update) at the end
         PlayerQuarterCostRule.UpdatePlayerQuarterCostRules(pqcrs[max(0,len(pqcrs) - max_lookback - 1):])
+
+    def UpdateFuturePQCRs(self, max_lookforward=-1):
+        "Update start_balance and start_num_games for max_lookforward future quarters (default all) info, transactions, and game counts"
+
+        pqcrs = PlayerQuarterCostRule.objects.filter(player=self.player, quarter__gte=self.quarter).order_by('quarter')
+
+        # if negative max_lookforward, count from end, where max_lookforward = -1 includes the entire list
+        if max_lookforward < 0:
+            max_lookforward = max(0, len(pqcrs) + max_lookforward)
+
+        # note that pqcrs includes self (which we want to update) at the end
+        PlayerQuarterCostRule.UpdatePlayerQuarterCostRules(pqcrs[0:max_lookforward+1])
 
     @staticmethod
     def UpdatePlayerQuarterCostRules(pqcrs):
