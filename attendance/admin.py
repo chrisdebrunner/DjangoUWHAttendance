@@ -86,8 +86,16 @@ class PlayerAdmin(admin.ModelAdmin):
                 # get latest PlayerQuarterCostRule for player
                 latest_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=current_quarter).order_by('quarter').last()
                 if latest_pqcr is not None:
-                    msg_values = {'QuarterlyPlanName' : str(latest_pqcr.cost_rule),
-                                  'QuarterlyPlanCost' : latest_pqcr.cost_rule.quarter_cost * latest_pqcr.discount_rate,
+                    latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=81).order_by('quarter').last()
+                    if latest_lte81_pqcr is not None:
+                        next_quarter_cost_rule = latest_lte81_pqcr.cost_rule
+                        next_quarter_discount_rate = latest_lte81_pqcr.discount_rate
+                    else:
+                        next_quarter_cost_rule = latest_pqcr.cost_rule
+                        next_quarter_discount_rate = latest_pqcr.discount_rate
+                    
+                    msg_values = {'QuarterlyPlanName' : str(next_quarter_cost_rule),
+                                  'QuarterlyPlanCost' : next_quarter_cost_rule.quarter_cost * next_quarter_discount_rate,
                                   'PlayerName' : player.user.first_name + ' ' + player.user.last_name,
                                   'PaymentDueDate' : (QuarterStartDatetime(current_quarter+1).date() + datetime.timedelta(days=9)).strftime('%B %d, %Y'),
                                   'CurrentQuarterStartDate' : QuarterStartDatetime(current_quarter).date().strftime('%B %d, %Y'),
@@ -215,11 +223,26 @@ class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'time'
     ordering = ['-time']
 
+    actions = ['create_payment_PQCRs']
+    actions_selection_counter = True
+
+    def create_payment_PQCRs(self, request, queryset):
+        for payment in queryset:
+            pqcr = PlayerQuarterCostRule.GetOrCreate(payment.player,payment.QuarterID())
+
+    
 class OtherChargeAdmin(admin.ModelAdmin):
     list_display = ('time', 'player', 'formatted_amount', 'remarks')
     list_filter = ['time']
     date_hierarchy = 'time'
     ordering = ['-time']
+
+    actions = ['create_other_charge_PQCRs']
+    actions_selection_counter = True
+
+    def create_other_charge_PQCRs(self, request, queryset):
+        for other_charge in queryset:
+            pqcr = PlayerQuarterCostRule.GetOrCreate(other_charge.player,other_charge.QuarterID())
 
 # Register your models here.
 
