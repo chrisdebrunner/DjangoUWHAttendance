@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 import datetime
 from django.utils.timezone import localtime, get_current_timezone
 from django.http import HttpResponseRedirect
-from attendance.models import QuarterStartDatetime, PlayerQuarterCostRule, QuarterID
+from attendance.models import QuarterStartDatetime, PlayerQuarterCostRule, QuarterID, CostRule
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 
@@ -85,14 +85,19 @@ class PlayerAdmin(admin.ModelAdmin):
             if player.user.email != '':
                 # get latest PlayerQuarterCostRule for player
                 latest_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=current_quarter).order_by('quarter').last()
+                next_quarter_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter=current_quarter+1).last()
+                latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=81).order_by('quarter').last()
+                if next_quarter_pqcr is not None:
+                    next_quarter_cost_rule = next_quarter_pqc.cost_rule
+                    next_quarter_discount_rate = next_quarter_pqc.discount_rate
+                elif latest_lte81_pqcr is not None:
+                    next_quarter_cost_rule = latest_lte81_pqcr.cost_rule
+                    next_quarter_discount_rate = latest_lte81_pqcr.discount_rate
+                else:
+                    next_quarter_cost_rule = CostRule.DefaultCostRule(current_quarter)
+                    next_quarter_discount_rate = 1.0
+
                 if latest_pqcr is not None:
-                    latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=81).order_by('quarter').last()
-                    if latest_lte81_pqcr is not None:
-                        next_quarter_cost_rule = latest_lte81_pqcr.cost_rule
-                        next_quarter_discount_rate = latest_lte81_pqcr.discount_rate
-                    else:
-                        next_quarter_cost_rule = latest_pqcr.cost_rule
-                        next_quarter_discount_rate = latest_pqcr.discount_rate
                     
                     msg_values = {'QuarterlyPlanName' : str(next_quarter_cost_rule),
                                   'QuarterlyPlanCost' : next_quarter_cost_rule.quarter_cost * next_quarter_discount_rate,
