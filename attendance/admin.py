@@ -88,8 +88,8 @@ class PlayerAdmin(admin.ModelAdmin):
                 next_quarter_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter=current_quarter+1).last()
                 latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=81).order_by('quarter').last()
                 if next_quarter_pqcr is not None:
-                    next_quarter_cost_rule = next_quarter_pqc.cost_rule
-                    next_quarter_discount_rate = next_quarter_pqc.discount_rate
+                    next_quarter_cost_rule = next_quarter_pqcr.cost_rule
+                    next_quarter_discount_rate = next_quarter_pqcr.discount_rate
                 elif latest_lte81_pqcr is not None:
                     next_quarter_cost_rule = latest_lte81_pqcr.cost_rule
                     next_quarter_discount_rate = latest_lte81_pqcr.discount_rate
