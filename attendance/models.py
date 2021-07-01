@@ -64,7 +64,7 @@ class Game(models.Model):
         return self.attendees.count()
 
     def QuarterID(self):
-        return QuarterID(self.starttime)
+        return QuarterID(timezone.localtime(self.starttime))
 
     def QuarterStartDatetime(self):
         return QuarterStartDatetime(self.QuarterID())
@@ -152,6 +152,7 @@ class CostRule(models.Model):
 def QuarterStartDatetime(id):
     return datetime.datetime(2000 + ((id-1) // 4), 3 * ((id-1) % 4) + 1, 1, tzinfo=timezone.get_current_timezone())
 
+# dt must be in correct time zone
 def QuarterID(dt):
     return 4 * (dt.year - 2000) + ((dt.month-1) // 3) + 1
 
@@ -159,6 +160,7 @@ def QuarterDatetimeRange(id):
     "return the datetime range in the given quarter"
     return QuarterStartDatetime(id), QuarterStartDatetime(id+1) - datetime.datetime.resolution
 
+# dt must be in correct time zone
 def QuarterWeekNumber(id, dt):
     "return the week number of the datetime dt in the quarter with the given id"
     qsd = QuarterStartDatetime(id)
@@ -383,7 +385,7 @@ class Payment(models.Model):
     reference = models.CharField(blank=True, max_length=200)
 
     def QuarterID(self):
-        return QuarterID(self.time)
+        return QuarterID(timezone.localtime(self.time))
 
     def QuarterStartDatetime(self):
         return QuarterStartDatetime(self.QuarterID())
@@ -408,7 +410,7 @@ class OtherCharge(models.Model):
     remarks = models.CharField(blank=True, max_length=200)
 
     def QuarterID(self):
-        return QuarterID(self.time)
+        return QuarterID(timezone.localtime(self.time))
 
     def QuarterStartDatetime(self):
         return QuarterStartDatetime(self.QuarterID())
