@@ -33,14 +33,14 @@ class GameAdmin(admin.ModelAdmin):
  
     def create_player_Q81_PQCRs(self, request, queryset):
         for game in queryset:
-            qID = game.QuarterID()
+            quarter = game.QuarterID()
             for player in game.attendees.all():
                 latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=81).order_by('quarter').last()
                 if latest_lte81_pqcr is not None:
-                    cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(qID)
+                    cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(quarter)
                 else:
                     cost_rule = CostRule.DefaultCostRule(quarter)
-                pqcr = PlayerQuarterCostRule.GetOrCreate(player, qID, cost_rule)
+                pqcr = PlayerQuarterCostRule.GetOrCreate(player, quarter, cost_rule)
                     
  
 
@@ -239,12 +239,22 @@ class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'time'
     ordering = ['-time']
 
-    actions = ['create_payment_PQCRs']
+    actions = ['create_payment_PQCRs', 'create_player_Q81_PQCRs']
     actions_selection_counter = True
 
     def create_payment_PQCRs(self, request, queryset):
         for payment in queryset:
             pqcr = PlayerQuarterCostRule.GetOrCreate(payment.player,payment.QuarterID())
+
+    def create_player_Q81_PQCRs(self, request, queryset):
+        for payment in queryset:
+            quarter = payment.QuarterID()
+            latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=payment.player, quarter__lte=81).order_by('quarter').last()
+                if latest_lte81_pqcr is not None:
+                    cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(quarter)
+                else:
+                    cost_rule = CostRule.DefaultCostRule(quarter)
+                pqcr = PlayerQuarterCostRule.GetOrCreate(payment.player, quarter, cost_rule)
 
     
 class OtherChargeAdmin(admin.ModelAdmin):
@@ -253,12 +263,22 @@ class OtherChargeAdmin(admin.ModelAdmin):
     date_hierarchy = 'time'
     ordering = ['-time']
 
-    actions = ['create_other_charge_PQCRs']
+    actions = ['create_other_charge_PQCRs', 'create_player_Q81_PQCRs']
     actions_selection_counter = True
 
     def create_other_charge_PQCRs(self, request, queryset):
         for other_charge in queryset:
             pqcr = PlayerQuarterCostRule.GetOrCreate(other_charge.player,other_charge.QuarterID())
+
+    def create_player_Q81_PQCRs(self, request, queryset):
+        for other_charge in queryset:
+            quarter = other_charge.QuarterID()
+            latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=other_charge.player, quarter__lte=81).order_by('quarter').last()
+                if latest_lte81_pqcr is not None:
+                    cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(quarter)
+                else:
+                    cost_rule = CostRule.DefaultCostRule(quarter)
+                pqcr = PlayerQuarterCostRule.GetOrCreate(other_charge.player, quarter, cost_rule)
 
 # Register your models here.
 
