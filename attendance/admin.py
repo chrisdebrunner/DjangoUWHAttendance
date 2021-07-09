@@ -250,11 +250,11 @@ class PaymentAdmin(admin.ModelAdmin):
         for payment in queryset:
             quarter = payment.QuarterID()
             latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=payment.player, quarter__lte=81).order_by('quarter').last()
-                if latest_lte81_pqcr is not None:
-                    cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(quarter)
-                else:
-                    cost_rule = CostRule.DefaultCostRule(quarter)
-                pqcr = PlayerQuarterCostRule.GetOrCreate(payment.player, quarter, cost_rule)
+            if latest_lte81_pqcr is not None:
+                cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(quarter)
+            else:
+                cost_rule = CostRule.DefaultCostRule(quarter)
+            pqcr = PlayerQuarterCostRule.GetOrCreate(payment.player, quarter, cost_rule)
 
     
 class OtherChargeAdmin(admin.ModelAdmin):
@@ -274,11 +274,11 @@ class OtherChargeAdmin(admin.ModelAdmin):
         for other_charge in queryset:
             quarter = other_charge.QuarterID()
             latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=other_charge.player, quarter__lte=81).order_by('quarter').last()
-                if latest_lte81_pqcr is not None:
-                    cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(quarter)
-                else:
-                    cost_rule = CostRule.DefaultCostRule(quarter)
-                pqcr = PlayerQuarterCostRule.GetOrCreate(other_charge.player, quarter, cost_rule)
+            if latest_lte81_pqcr is not None:
+                cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(quarter)
+            else:
+                cost_rule = CostRule.DefaultCostRule(quarter)
+            pqcr = PlayerQuarterCostRule.GetOrCreate(other_charge.player, quarter, cost_rule)
 
 # Register your models here.
 
