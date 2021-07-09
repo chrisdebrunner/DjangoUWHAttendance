@@ -133,6 +133,14 @@ class CostRule(models.Model):
         fvq4q = CostRule.FirstValidQuarterForQuarter(quarter)
         return self.first_valid_quarter == fvq4q
 
+    def CostRuleForQuarter(self, quarter):
+        """return cost rule with same player class, is_visitor, and at least as many games per week as self, but valid for given quarter"""
+        fvq = FirstValidQuarterForQuarter(quarter)
+        return CostRule.objects.filter(player_class=self.player_class,
+                                       is_visitor=self.is_visitor,
+                                       quarterly_games_per_week__gte=self.quarterly_games_per_week,
+                                       first_valid_quarter=fvq).order_by('quarterly_games_per_week').first()
+
     @staticmethod
     def DefaultCostRule(quarter):
         """return the default cost rule for the quarter"""

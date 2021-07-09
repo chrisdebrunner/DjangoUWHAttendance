@@ -23,13 +23,25 @@ class GameAdmin(admin.ModelAdmin):
         (None,    {'fields': ['pool', 'attendees']}),
         ('Other', {'fields': ['notes', 'shared_time_minutes'], 'classes': ['collapse']}),
     ]
-    actions = ['create_player_PQCRs']
+    actions = ['create_player_PQCRs', 'create_player_Q81_PQCRs']
     actions_selection_counter = True
 
     def create_player_PQCRs(self, request, queryset):
         for game in queryset:
             for player in game.attendees.all():
                 pqcr = PlayerQuarterCostRule.GetOrCreate(player,game.QuarterID())
+ 
+    def create_player_Q81_PQCRs(self, request, queryset):
+        for game in queryset:
+            qID = game.QuarterID()
+            for player in game.attendees.all():
+                latest_lte81_pqcr = PlayerQuarterCostRule.objects.filter(player=player, quarter__lte=81).order_by('quarter').last()
+                if latest_lte81_pqcr is not None:
+                    cost_rule = latest_lte81_pqcr.cost_rule.CostRuleForQuarter(qID)
+                else:
+                    cost_rule = CostRule.DefaultCostRule(quarter)
+                pqcr = PlayerQuarterCostRule.GetOrCreate(player, qID, cost_rule)
+                    
  
 
 class PlayerAdmin(admin.ModelAdmin):
