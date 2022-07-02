@@ -1,11 +1,13 @@
-Quarterly fees for {QuarterlyPlanName}    ${CurrentQuarterlyPlanCost:.2f}
+Quarterly fees for                    ${CurrentQuarterlyPlanCost:.2f}        ${CurrentQuarterlyPlanBalance:.2f}
+{QuarterlyPlanName}
 plan for quarter starting 
 {CurrentQuarterStartDate}
 
-Cost of {NumDropInPractices} drop-in practices   ${CurrentQuarterDropinCost:.2f}
-at {DropinCostDescr}
+Cost of                                    ${CurrentQuarterDropinCost:.2f}       ${CurrentQuarterDropinBalance:.2f}
+{NumDropInPractices} 
+drop-in practices at 
+{DropinCostDescr}
 
-Credits                                          ${CurrentQuarterCredits:.2f}
+Credits                                    ${CurrentQuarterCredits:.2f}               ${CurrentQuarterCreditBalance:.2f}
 
-Other charges                                    ${CurrentQuarterOtherCharges:.2f}
-
+Other charges                         ${CurrentQuarterOtherCharges:.2f}     ${CurrentQuarterOtherChargeBalance:.2f}

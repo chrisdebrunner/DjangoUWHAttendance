@@ -1,52 +1,48 @@
 This is an automated email sent by the Denver Area Underwater Hockey Club (DAUHC) 
 attendance web server to let you know what you owe for the upcoming quarter. In order to 
-remain on the {QuarterlyPlanName} you will need to pay the balance due by 
+remain on the {QuarterlyPlanName} plan you will need to pay the balance due by 
 {PaymentDueDate}. If you do not pay by this date, you will be put on the drop-in payment plan. 
 If you wish to change your quarterly plan, please contact Chris Debrunner 
 (chris.debrunner@ieee.org).
-
-
-
+ 
 Invoice Summary for {PlayerName} for Quarter starting {CurrentQuarterStartDate}
 
-Starting balance carried over                    ${InitialBalance:.2f}
-from previous quarter
+Starting balance carried over from previous quarter:           ${InitialBalance:.2f}
 
 {CurrentQuarterInvoiceTableRowsTXT}
-Quarterly fees for {QuarterlyPlanName}    ${QuarterlyPlanCost:.2f}
+Quarterly fees for                   ${QuarterlyPlanCost:.2f}                      ${QuarterlyPlanBalance:.2f}
+{QuarterlyPlanName} 
 plan for upcoming quarter
 
-                            Total Balance Due    ${TotalBalanceDue:.2f}
-
-
-
+Total Balance Due:                                                                              ${TotalBalanceDue:.2f}
+ 
+ 
 Fees and Quarterly Payment Options
 Our fees are as follows:
-Plan Type                            Regular   Student
-Drop-in                                $10        $6
-One-game-a-week quarterly              $90       $54
-Two-games-a-week quarterly            $150       $90
-Three-or-more-games-a-week quarterly  $210      $126
-
+Plan Type                                                        Regular          Student
+Drop-in                                                              $10                 $6
+One-game-a-week quarterly                             $90               $54
+Two-games-a-week quarterly                         $150               $90
+Three-or-more-games-a-week quarterly        $210            $126
+ 
 Other Notes:
-1)	All new players get the first 3 practices for free and practices 4-13 at 
-        half the drop-in price
-2)	All juniors (high school age or younger) can attend all practices for free
-3)	All experienced visitors (players from other clubs who visit us) are 
-        charged the drop in charge
-4)	Quarters start on the first of January, April, July, and October
-
-
-
+1)    All new players get the first 3 practices for free and practices 4-13 at half the drop-in price
+2)    All juniors (high school age or younger) can attend all practices for free
+3)    All experienced visitors (players from other clubs who visit us) are charged the drop-in price
+4)    Quarters start on the first of January, April, July, and October
+ 
+ 
 Payment Methods:
-•    Automatic Bill Pay: Consider scheduling a recurring quarterly payment from
-     your checking account to the club's on or before the first day of the quarter!
-     •    DAUHC Checking -- at Community Banks of Colorado
-             Routing number: 102102013
-             Account number: 9711175
-•    Paypal: go to https://www.paypal.me/denveruwh/{TotalBalanceDue:.2f} or send a Paypal payment of ${TotalBalanceDue:.2f} to denveruwh@gmail.com
-     Please make a personal transfer to avoid any fees. We will ask you to cover 
-     any fees incurred by mistake or from using a credit card.
-•    Cash or check:
-     Checks should be made out to DAUHC.
-     Deliver to Chris Debrunner or Tyera Eulberg
+*      Automatic Bill Pay: Consider scheduling a recurring quarterly payment from your checking 
+       account to the club's on or before the first day of the quarter!
+       DAUHC Checking -- at Community Banks of Colorado
+       Routing number: 102102013
+       Account number: 9711175
+*      Paypal: go to https://www.paypal.me/denveruwh/{TotalBalanceDue:.2f} or send a Paypal 
+       payment of ${TotalBalanceDue:.2f} to denveruwh@gmail.com
+       Please make a personal transfer to avoid any fees, i.e., when PayPal asks you to "Choose
+       a payment type", select "For friends and family" rather than "For goods and services."
+       We will ask you to cover any fees incurred by mistake or from using a credit card.
+*      Cash or check:
+       Checks should be made out to DAUHC.
+       Deliver to Chris Debrunner or Tyera Eulberg

@@ -97,6 +97,12 @@ p.msonormal0, li.msonormal0, div.msonormal0
 	margin-left:0in;
 	font-size:12.0pt;
 	font-family:"Times New Roman",serif;}}
+p.msochpdefault, li.msochpdefault, div.msochpdefault
+	{{mso-style-name:msochpdefault;
+	margin-right:0in;
+	margin-left:0in;
+	font-size:10.0pt;
+	font-family:"Times New Roman",serif;}}
 .MsoChpDefault
 	{{font-size:10.0pt;}}
 @page WordSection1
@@ -134,13 +140,13 @@ href="mailto:chris.debrunner@ieee.org">chris.debrunner@ieee.org</a>).</p>
   <p class=MsoNormal align=right style='margin-right:-.9pt;text-align:right'><b>Starting
   balance carried over from previous quarter:</b></p>
   </td>
-  <td width=80 valign=top style='width:60pt;border-top:solid windowtext 2.25pt;
+  <td width=80 valign=top style='width:60.0pt;border-top:solid windowtext 2.25pt;
   border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 2.25pt;
   background:#D9E2F3;padding:0in 0in 0in 0in'>
   <p class=MsoNormal align=right style='margin-right:-.9pt;text-align:right'>${InitialBalance:.2f}</p>
   </td>
  </tr>
-{CurrentQuarterInvoiceTableRowsHTML}
+ {CurrentQuarterInvoiceTableRowsHTML}
  <tr>
   <td width=374 valign=top style='width:280.7pt;border-top:none;border-left:
   solid windowtext 2.25pt;border-bottom:solid windowtext 1.0pt;border-right:
@@ -148,13 +154,13 @@ href="mailto:chris.debrunner@ieee.org">chris.debrunner@ieee.org</a>).</p>
   <p class=MsoNormal>Quarterly fees for {QuarterlyPlanName} plan for upcoming
   quarter</p>
   </td>
-  <td width=80 valign=top style='width:60pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 2.25pt;
+  <td width=80 valign=top style='width:60.0pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 2.25pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=right style='text-align:right'>${QuarterlyPlanCost:.2f}</p>
   </td>
-  <td width=80 valign=top style='width:60pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 2.25pt;
+  <td width=80 valign=top style='width:60.0pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 2.25pt;
   padding:0in 0in 0in 0in'>
   <p class=MsoNormal align=right style='text-align:right'>${QuarterlyPlanBalance:.2f}</p>
   </td>
@@ -164,8 +170,8 @@ href="mailto:chris.debrunner@ieee.org">chris.debrunner@ieee.org</a>).</p>
   border-top:none;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=right style='text-align:right'><b>Total Balance Due:</b></p>
   </td>
-  <td width=80 valign=top style='width:60pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 2.25pt;border-right:solid windowtext 2.25pt;
+  <td width=80 valign=top style='width:60.0pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 2.25pt;border-right:solid windowtext 2.25pt;
   padding:0in 0in 0in 0in'>
   <p class=MsoNormal align=right style='text-align:right'><b>${TotalBalanceDue:.2f}</b></p>
   </td>
@@ -283,8 +289,8 @@ free and practices 4-13 at half the drop-in price</p>
 attend all practices for free</p>
 
 <p class=MsoListParagraph style='text-indent:-.25in'>3)<span style='font-size:
-7.0pt'>&nbsp;&nbsp;&nbsp; </span>All experienced visitors (players from other clubs
-who visit us) are charged the drop-in price</p>
+7.0pt'>&nbsp;&nbsp;&nbsp; </span>All experienced visitors (players from other
+clubs who visit us) are charged the drop-in price</p>
 
 <p class=MsoListParagraph style='text-indent:-.25in'>4)<span style='font-size:
 7.0pt'>&nbsp;&nbsp;&nbsp; </span>Quarters start on the first of January, April,
@@ -313,13 +319,16 @@ number:&nbsp;102102013</span></p>
 number:&nbsp;9711175</span></p>
 
 <p class=MsoListParagraph style='text-indent:-.25in'><span style='font-family:
-Symbol'>·</span><span style='font-size:7.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><b>Paypal</b>:&nbsp;go to <a
-href="https://www.paypal.me/denveruwh/{TotalBalanceDue:.2f}">https://www.paypal.me/denveruwh/{TotalBalanceDue:.2f}</a> or send a Paypal
-payment of ${TotalBalanceDue:.2f} to <a href="mailto:denveruwh@gmail.com">denveruwh@gmail.com</a></p>
+Symbol'>·</span><span style='font-size:7.0pt'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><b>Paypal</b>:&nbsp;go
+to <a href="https://www.paypal.me/denveruwh/{TotalBalanceDue:.2f}">https://www.paypal.me/denveruwh/{TotalBalanceDue:.2f}</a>
+or send a Paypal payment of ${TotalBalanceDue:.2f} to <a
+href="mailto:denveruwh@gmail.com">denveruwh@gmail.com</a></p>
 
 <p class=MsoNormal style='margin-left:.5in'><span style='color:black'>Please
-make a personal transfer to avoid any fees. </span>We will ask you to cover any
-fees incurred by mistake or from using a credit card.</p>
+make a personal transfer to avoid any fees, i.e., when PayPal asks you to “Choose
+a payment type”, select “For friends and family” rather than “For goods and
+services.” </span>We will ask you to cover any fees incurred by mistake or from
+using a credit card.</p>
 
 <p class=MsoListParagraph style='text-indent:-.25in'><span style='font-family:
 Symbol;color:black'>·</span><span style='font-size:7.0pt;color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

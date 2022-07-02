@@ -3,6 +3,7 @@ Save the file in Word as "Web Page, Filtered (.htm)".
 Open the file in emacs, and convert all curly brackets that are not enclosing python 
 substitutions with double open and close curly brackets (ie { -> {{ and } -> }}). 
 
+The following changes may not be necessary, but you should check:
 Reduce the second column width from 287 to 80 (215.2 pt to 60 pt) and the third 
 column width from 280 to 80 (209.95 pt to 60 pt).
 For the first and last rows, reduce the first column width from 661 to 454 
