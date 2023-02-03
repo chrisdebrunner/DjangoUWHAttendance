@@ -47,6 +47,7 @@ class GameAdmin(admin.ModelAdmin):
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'initial_num_games', 'initial_balance')
     ordering = ['user__last_name', 'user__first_name']
+    search_fields = ['user__last_name', 'user__first_name']
     actions = ['send_upcoming_quarter_invoice_emails', 'send_balance_emails', 'create_new_game']
     actions_selection_counter = True
 
@@ -218,6 +219,7 @@ class QuarterListFilter(admin.SimpleListFilter):
 class PlayerQuarterCostRuleAdmin(admin.ModelAdmin):
     list_display = ('quarter_start_date', 'player', 'cost_rule', 'prorate', 'discount_rate', 'formatted_start_balance')
     list_filter = (QuarterListFilter,)
+    search_fields = ['player__user__last_name', 'player__user__first_name']
     actions = ['update_future_balances']
     actions_selection_counter = True
     #date_hierarchy = 'quarter_start_date'
@@ -236,6 +238,7 @@ class PlayerQuarterCostRuleAdmin(admin.ModelAdmin):
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('time', 'player', 'formatted_amount', 'payment_type', 'reference')
     list_filter = ['time', 'payment_type']
+    search_fields = ['player__user__last_name', 'player__user__first_name']
     date_hierarchy = 'time'
     ordering = ['-time']
 
@@ -260,6 +263,7 @@ class PaymentAdmin(admin.ModelAdmin):
 class OtherChargeAdmin(admin.ModelAdmin):
     list_display = ('time', 'player', 'formatted_amount', 'remarks')
     list_filter = ['time']
+    search_fields = ['player__user__last_name', 'player__user__first_name']
     date_hierarchy = 'time'
     ordering = ['-time']
 
