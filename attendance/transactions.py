@@ -8,16 +8,16 @@ class Transaction():
     def __init__(self, dt, amount, descr=""):
         self.dt = dt
         self.description = descr
-        self.amount = amount
+        self.amount = round(amount, 2)
 
     def __add__(self, a):
         if isinstance(a, Transaction):
             return self.amount + a.amount
         else:
-            return self.amount + a
+            return round(self.amount + a, 2)
 
     def __radd__(self, a):
-        return self + a
+        return round(self + a, 2)
 
     def __str__(self, wrap_description=True):
         if wrap_description:

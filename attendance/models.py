@@ -344,7 +344,7 @@ class PlayerQuarterCostRule(models.Model):
         sorted_transactions = sorted(transactions, key=attrgetter('dt'))
         for tr in sorted_transactions:
             balance += tr.amount
-            tr.balance = balance
+            tr.balance = round(balance, 2)
 
         return sorted_transactions
 
