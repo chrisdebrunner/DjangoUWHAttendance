@@ -48,7 +48,7 @@ class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'initial_num_games', 'initial_balance')
     ordering = ['user__last_name', 'user__first_name']
     search_fields = ['user__last_name', 'user__first_name']
-    actions = ['send_upcoming_quarter_invoice_emails', 'send_balance_emails', 'create_new_game']
+    actions = ['send_upcoming_quarter_invoice_emails', ['send_current_quarter_invoice_emails', 'send_balance_emails', 'create_new_game']
     actions_selection_counter = True
 
     def send_balance_emails(self, request, queryset):
@@ -81,6 +81,22 @@ class PlayerAdmin(admin.ModelAdmin):
     def send_upcoming_quarter_invoice_emails(self, request, queryset):
         now = datetime.datetime.now(tz=get_current_timezone())
         current_quarter = QuarterID(now)
+        send_invoice_email(request, queryset, current_quarter)
+
+
+    send_upcoming_quarter_invoice_emails.short_description = "Send upcoming quarter invoice emails"
+
+    
+    def send_current_quarter_invoice_emails(self, request, queryset):
+        now = datetime.datetime.now(tz=get_current_timezone())
+        current_quarter = QuarterID(now)
+        send_invoice_email(request, queryset, current_quarter-1)
+
+
+    send_current_quarter_invoice_emails.short_description = "Send current quarter invoice emails"
+
+    
+    def send_invoice_email(self, request, queryset, current_quarter):
         message_template_path = '/Users/cdebrunn/Software/djangoUWH/djangoUWH/email templates/'
         f = open(message_template_path + 'UWH Quarterly Player Invoice Tempate No Web Page.txt','r',encoding='utf_8')
         message = f.read()
@@ -172,9 +188,6 @@ class PlayerAdmin(admin.ModelAdmin):
                                   [player.user.email],
                                   html_message = html_message.format(**msg_values))
     
-    
-    send_upcoming_quarter_invoice_emails.short_description = "Send upcoming quarter invoice emails"
-
     
     def create_new_game(self, request, queryset):
         now = datetime.datetime.now(tz=get_current_timezone())
