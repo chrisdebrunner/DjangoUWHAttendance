@@ -48,7 +48,7 @@ class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'initial_num_games', 'initial_balance')
     ordering = ['user__last_name', 'user__first_name']
     search_fields = ['user__last_name', 'user__first_name']
-    actions = ['send_upcoming_quarter_invoice_emails', ['send_current_quarter_invoice_emails', 'send_balance_emails', 'create_new_game']
+    actions = ['send_upcoming_quarter_invoice_emails', 'send_current_quarter_invoice_emails', 'send_balance_emails', 'create_new_game']
     actions_selection_counter = True
 
     def send_balance_emails(self, request, queryset):
