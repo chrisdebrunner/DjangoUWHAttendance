@@ -81,7 +81,7 @@ class PlayerAdmin(admin.ModelAdmin):
     def send_upcoming_quarter_invoice_emails(self, request, queryset):
         now = datetime.datetime.now(tz=get_current_timezone())
         current_quarter = QuarterID(now)
-        send_invoice_email(request, queryset, current_quarter)
+        self.send_invoice_email(request, queryset, current_quarter)
 
 
     send_upcoming_quarter_invoice_emails.short_description = "Send upcoming quarter invoice emails"
@@ -90,7 +90,7 @@ class PlayerAdmin(admin.ModelAdmin):
     def send_current_quarter_invoice_emails(self, request, queryset):
         now = datetime.datetime.now(tz=get_current_timezone())
         current_quarter = QuarterID(now)
-        send_invoice_email(request, queryset, current_quarter-1)
+        self.send_invoice_email(request, queryset, current_quarter-1)
 
 
     send_current_quarter_invoice_emails.short_description = "Send current quarter invoice emails"
