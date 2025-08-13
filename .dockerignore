@@ -1,10 +1,6 @@
-# Django
-db.sqlite3
-db.sqlite3-journal
-*.log
-local_settings.py
-media/
-staticfiles/
+# Git
+.git
+.gitignore
 
 # Python
 __pycache__/
@@ -24,6 +20,8 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -33,10 +31,6 @@ MANIFEST
 venv/
 env/
 ENV/
-.venv/
-
-# Docker
-.env
 
 # IDE
 .vscode/
@@ -48,6 +42,21 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Node modules (if any)
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Docker
+docker-compose.override.yml
+.env
+
+# Documentation
+README.md
+*.md
+
+# Others
 node_modules/
 npm-debug.log*
