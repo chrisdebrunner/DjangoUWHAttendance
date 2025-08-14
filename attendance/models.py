@@ -25,7 +25,7 @@ def newuser():
     return v
 
 class Player(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     initial_num_games = models.IntegerField(default=0)
     initial_balance = models.FloatField(default=0)
     notes = models.CharField(blank=True, max_length=100)
@@ -187,8 +187,8 @@ def UpdateAllPlayerQuarterCostRules(quarter_id, max_lookback=1, players=None):
 
 
 class PlayerQuarterCostRule(models.Model):
-    cost_rule = models.ForeignKey(CostRule)
-    player = models.ForeignKey(Player)
+    cost_rule = models.ForeignKey(CostRule, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
     quarter = models.PositiveSmallIntegerField(default=0)
     start_balance = models.FloatField(default=0.0)
     start_num_games = models.PositiveSmallIntegerField(default=0)
@@ -386,7 +386,7 @@ class Payment(models.Model):
         (ACCOUNT_CREDIT, 'account credit'),
         (DIRECT_DEPOSIT, 'direct deposit'),
     )
-    player = models.ForeignKey(Player)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
     time = models.DateTimeField()
     amount = models.FloatField(default=0.0)
     payment_type = models.PositiveSmallIntegerField(choices=PAYMENT_TYPE_CHOICES, default=CASH)
@@ -412,7 +412,7 @@ class Payment(models.Model):
 
 
 class OtherCharge(models.Model):
-    player = models.ForeignKey(Player)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
     time = models.DateTimeField()
     amount = models.FloatField(default=0.0)
     remarks = models.CharField(blank=True, max_length=200)
