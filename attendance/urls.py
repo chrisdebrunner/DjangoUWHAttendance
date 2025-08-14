@@ -1,16 +1,16 @@
-from django.conf.urls import url, include
-
+from django.urls import path, include
 from django.contrib.auth import views as authviews
-
 from . import views
 
 app_name = 'attendance'
 urlpatterns = [
-    # Display latest games in curernt quarter. ex: /attendance/
-    url(r'^transactions/$', views.TransactionsView.as_view(), name='transactions'),
-    url(r'^password_change/$', authviews.password_change, {'post_change_redirect': 'attendance:password_change_done'}, name='password_change'),
-    url(r'^password_reset/$', authviews.password_reset, {'post_reset_redirect': 'attendance:password_reset_done'}, name='password_reset'),
-    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        authviews.password_reset_confirm, {'post_reset_redirect': 'attendance:password_reset_complete'}, name='password_reset_confirm'),
-    url('^', include('django.contrib.auth.urls')),
+    # Display transactions for current quarter. ex: /attendance/
+    path('transactions/', views.TransactionsView.as_view(), name='transactions'),
+    path('password_change/', authviews.PasswordChangeView.as_view(success_url='/attendance/password_change/done/'), name='password_change'),
+    path('password_change/done/', authviews.PasswordChangeDoneView.as_view(), name='password_change_done'),
+    path('password_reset/', authviews.PasswordResetView.as_view(success_url='/attendance/password_reset/done/'), name='password_reset'),
+    path('password_reset/done/', authviews.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', authviews.PasswordResetConfirmView.as_view(success_url='/attendance/reset/complete/'), name='password_reset_confirm'),
+    path('reset/complete/', authviews.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('', include('django.contrib.auth.urls')),
 ]
