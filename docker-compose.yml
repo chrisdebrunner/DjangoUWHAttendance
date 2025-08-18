@@ -6,10 +6,10 @@ services:
     container_name: uwh_mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: uwh_attendance
-      MYSQL_USER: uwh_user
-      MYSQL_PASSWORD: uwh_password
-      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: ${DB_NAME:-uwh_attendance}
+      MYSQL_USER: ${DB_USER:-uwh_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-uwh_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./db-init:/docker-entrypoint-initdb.d
@@ -24,14 +24,14 @@ services:
     container_name: uwh_web
     restart: unless-stopped
     environment:
-      DEBUG: "True"
-      SECRET_KEY: "your-secret-key-change-in-production"
-      DB_NAME: uwh_attendance
-      DB_USER: uwh_user
-      DB_PASSWORD: uwh_password
+      DEBUG: ${DEBUG:-False}
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      DB_NAME: ${DB_NAME:-uwh_attendance}
+      DB_USER: ${DB_USER:-uwh_user}
+      DB_PASSWORD: ${DB_PASSWORD:-uwh_password}
       DB_HOST: db
       DB_PORT: 3306
-      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
     ports:
       - "8000:8000"
     volumes:
